@@ -416,6 +416,7 @@ GameObject:
   - component: {fileID: 34906961}
   - component: {fileID: 34906964}
   - component: {fileID: 34906963}
+  - component: {fileID: 34906965}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -503,6 +504,35 @@ MonoBehaviour:
   playerStartLevel: 1
   enemiesParent: {fileID: 175005122}
   fish: {fileID: 1973585229}
+--- !u!114 &34906965
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 34906960}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 451c8429119c747eeb5c168f0a1929c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Template.Gameplay.Controller.LevelUpController
+  PrintTrace: 0
+  levelUpRoot: {fileID: 237691867}
+  cutInBackgroundSprite: {fileID: 21300000, guid: 876b9bd8acfaf4574b70363e4925e83e, type: 3}
+  bgEnterDuration: 0.35
+  bgExitDuration: 0.35
+  fishEnterDuration: 0.45
+  evolvePopScale: 1.2
+  evolvePopDuration: 0.2
+  fishExitDuration: 0.4
+  delayBeforeFishEnter: 0.1
+  delayBeforeEvolve: 0.1
+  delayBeforeFishExit: 0.25
+  delayBeforeBgExit: 0.1
+  levelUpFont: {fileID: 12800000, guid: 5dd49b3eacc540408c98eee0de38e0f1, type: 3}
+  levelUpFontSize: 120
+  levelUpTextColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  levelUpText: LEVEL UP!
 --- !u!1 &46809187
 GameObject:
   m_ObjectHideFlags: 0
@@ -693,6 +723,81 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &237691866
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 237691867}
+  - component: {fileID: 237691869}
+  - component: {fileID: 237691868}
+  m_Layer: 5
+  m_Name: LevelUp
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &237691867
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 237691866}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1684665690}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &237691868
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 237691866}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 1
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &237691869
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 237691866}
+  m_CullTransparentMesh: 1
 --- !u!1 &299966309
 GameObject:
   m_ObjectHideFlags: 0
@@ -1997,6 +2102,7 @@ RectTransform:
   - {fileID: 71809645}
   - {fileID: 46809188}
   - {fileID: 4859988195364717290}
+  - {fileID: 237691867}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2220,9 +2326,9 @@ GameObject:
   - component: {fileID: 1973585231}
   - component: {fileID: 1973585230}
   - component: {fileID: 1973585229}
+  - component: {fileID: 1973585234}
   - component: {fileID: 1973585232}
   - component: {fileID: 1973585233}
-  - component: {fileID: 1973585234}
   m_Layer: 5
   m_Name: Fish
   m_TagString: Untagged
@@ -2274,6 +2380,19 @@ MonoBehaviour:
   fishStatus: {fileID: 1973585234}
   destroyEnemyOnEat: 1
   disableOnGameOver: 1
+  fishImage: {fileID: 1973585230}
+  levelSprites:
+  - {fileID: 21300000, guid: 05a4f62210bff4672890e7718b756d82, type: 3}
+  - {fileID: 21300000, guid: 9cd4de55d42034f41aa5f4f04303f2a5, type: 3}
+  - {fileID: 21300000, guid: 7758cbf8f2f724af797be2a391ced4e6, type: 3}
+  imageSizePerLevel:
+  - {x: 200, y: 200}
+  - {x: 250, y: 250}
+  - {x: 700, y: 700}
+  boxColliderSizePerLevel:
+  - {x: 150, y: 50}
+  - {x: 200, y: 100}
+  - {x: 600, y: 150}
 --- !u!114 &1973585230
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using Template.Gameplay.Model;
 using Template.Core;
 
@@ -20,6 +21,11 @@ namespace Template.Gameplay.Controller
         [SerializeField] private FishStatus fishStatus;
         [SerializeField] private bool destroyEnemyOnEat = true;
         [SerializeField] private bool disableOnGameOver = true;
+        [Header("Level Visuals")]
+        [SerializeField] private Image fishImage;
+        [SerializeField] private Sprite[] levelSprites = new Sprite[3]; // index 0→Lv1
+        [SerializeField] private Vector2[] imageSizePerLevel = new Vector2[3]; // px size for RectTransform (optional)
+        [SerializeField] private Vector2[] boxColliderSizePerLevel = new Vector2[3]; // optional
 
         private RectTransform parentRect;
         private Canvas canvas;
@@ -33,7 +39,7 @@ namespace Template.Gameplay.Controller
         public void ResetState(Vector2? startAnchoredPosition = null, int startLevel = 1)
         {
             if (fishStatus == null) fishStatus = GetComponent<FishStatus>();
-            fishStatus?.ResetProgress(startLevel);
+            fishStatus?.ResetProgress(startLevel, false);
             currentVelocity = Vector2.zero;
             enabled = true;
             if (joystick != null)
@@ -51,6 +57,7 @@ namespace Template.Gameplay.Controller
             if (targetRect != null)
             {
                 targetRect.anchoredPosition = startAnchoredPosition.HasValue ? startAnchoredPosition.Value : initialAnchoredPosition;
+                ApplyLevelVisuals(fishStatus != null ? fishStatus.Level : 1);
             }
             else
             {
@@ -77,6 +84,66 @@ namespace Template.Gameplay.Controller
             }
             if (fishStatus == null)
                 fishStatus = GetComponent<FishStatus>();
+            if (fishImage == null)
+                fishImage = GetComponent<Image>();
+        }
+
+        private void OnEnable()
+        {
+            if (fishStatus != null)
+            {
+                fishStatus.LevelChanged += OnPlayerLevelChanged;
+                // Do not animate on enable; ensure visuals match current level only
+                ApplyLevelVisuals(fishStatus.Level);
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (fishStatus != null)
+            {
+                fishStatus.LevelChanged -= OnPlayerLevelChanged;
+            }
+        }
+
+        private void OnPlayerLevelChanged(int newLevel)
+        {
+            // Only animate when actually leveling up to 2 or 3, not on init/reset
+            if (newLevel >= 2)
+            {
+                Sprite beforeSprite = (fishImage != null) ? fishImage.sprite : null;
+                int idx = Mathf.Clamp(newLevel - 1, 0, 2);
+                Sprite afterSprite = (levelSprites != null && idx < levelSprites.Length) ? levelSprites[idx] : beforeSprite;
+                Vector2 beforeSize = (targetRect != null) ? targetRect.sizeDelta : Vector2.zero;
+                Vector2 afterSize = (imageSizePerLevel != null && idx < imageSizePerLevel.Length) ? imageSizePerLevel[idx] : beforeSize;
+                LevelUpController.Instance?.PlayLevelUp(beforeSprite, afterSprite, beforeSize, afterSize);
+            }
+            // Always sync visuals
+            ApplyLevelVisuals(newLevel);
+        }
+
+        private void ApplyLevelVisuals(int level)
+        {
+            int idx = Mathf.Clamp(level - 1, 0, 2);
+            // Sprite
+            if (fishImage != null && levelSprites != null && idx < levelSprites.Length && levelSprites[idx] != null)
+            {
+                fishImage.sprite = levelSprites[idx];
+            }
+            // Rect size
+            if (targetRect != null && imageSizePerLevel != null && idx < imageSizePerLevel.Length && imageSizePerLevel[idx] != Vector2.zero)
+            {
+                targetRect.sizeDelta = imageSizePerLevel[idx];
+                // Keep scale magnitude as original; only horizontal sign may change later for flip
+                Vector3 s = targetRect.localScale;
+                targetRect.localScale = new Vector3(Mathf.Sign(s.x) * Mathf.Abs(originalScale.x), originalScale.y, originalScale.z);
+            }
+            // Collider size (BoxCollider2D)
+            var box = GetComponent<BoxCollider2D>();
+            if (box != null && boxColliderSizePerLevel != null && idx < boxColliderSizePerLevel.Length && boxColliderSizePerLevel[idx] != Vector2.zero)
+            {
+                box.size = boxColliderSizePerLevel[idx];
+            }
         }
 
         private void Update()
@@ -136,7 +203,8 @@ namespace Template.Gameplay.Controller
                     float sign = (vx > 0f) ? -1f : 1f;
                     Vector3 scale = targetRect.localScale;
                     scale.x = Mathf.Abs(originalScale.x) * sign;
-                    targetRect.localScale = scale;
+                    scale.y = originalScale.y;
+                    targetRect.localScale = scale; 
                 }
             }
         }

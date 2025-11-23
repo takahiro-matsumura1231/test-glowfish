@@ -12,6 +12,7 @@ namespace Template.Gameplay.Model
 
         public int Level => level;
         public int FoodEaten => foodEaten;
+        public event System.Action<int> LevelChanged;
 
         private void OnValidate()
         {
@@ -20,10 +21,15 @@ namespace Template.Gameplay.Model
             foodToLevel3 = Mathf.Max(foodToLevel2 + 1, foodToLevel3);
         }
 
-        public void ResetProgress(int startLevel = 1)
+        public void ResetProgress(int startLevel = 1, bool emitEvent = true)
         {
-            level = Mathf.Clamp(startLevel, 1, 3);
+            int newLevel = Mathf.Clamp(startLevel, 1, 3);
+            level = newLevel;
             foodEaten = 0;
+            if (emitEvent)
+            {
+                LevelChanged?.Invoke(level);
+            }
         }
 
         public void AddFood(int amount = 1)
@@ -35,6 +41,7 @@ namespace Template.Gameplay.Model
 
         private void TryLevelUp()
         {
+            int before = level;
             if (level == 1 && foodEaten >= foodToLevel2)
             {
                 level = 2;
@@ -42,6 +49,10 @@ namespace Template.Gameplay.Model
             if (level == 2 && foodEaten >= foodToLevel3)
             {
                 level = 3;
+            }
+            if (level != before)
+            {
+                LevelChanged?.Invoke(level);
             }
         }
     }
