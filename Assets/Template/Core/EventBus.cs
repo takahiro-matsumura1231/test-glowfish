@@ -1,0 +1,13 @@
+using System;
+
+namespace Template.Core
+{
+    public static class EventBus
+    {
+        public static Action<int> OnScoreChanged;
+        public static Action OnFishGrow;
+        public static Action<GameState> OnGameStateChanged;
+    }
+}
+
+

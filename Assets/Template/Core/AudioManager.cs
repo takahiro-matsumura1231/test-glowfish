@@ -1,0 +1,99 @@
+using UnityEngine;
+using UnityEngine.Audio;
+
+namespace Template.Core
+{
+    public class AudioManager : MonoBehaviourSingleton<AudioManager>
+    {
+        [Header("Audio Sources")]
+        [SerializeField] private AudioSource bgmSource;
+        [SerializeField] private AudioSource seSource;
+
+        [Header("Audio Mixer Routing")]
+        [SerializeField] private AudioMixer audioMixer;
+        [SerializeField] private AudioMixerGroup bgmGroup;
+        [SerializeField] private AudioMixerGroup seGroup;
+        [SerializeField] private string bgmVolumeParameter = "BGM";
+        [SerializeField] private string seVolumeParameter = "SE";
+
+        protected override void SingletonAwakened()
+        {
+            if (bgmSource == null)
+            {
+                bgmSource = gameObject.AddComponent<AudioSource>();
+                bgmSource.playOnAwake = false;
+                bgmSource.loop = true;
+            }
+            if (seSource == null)
+            {
+                seSource = gameObject.AddComponent<AudioSource>();
+                seSource.playOnAwake = false;
+                seSource.loop = false;
+            }
+
+            if (bgmGroup != null) bgmSource.outputAudioMixerGroup = bgmGroup;
+            if (seGroup != null) seSource.outputAudioMixerGroup = seGroup;
+        }
+
+        public void PlayBGM(AudioClip clip, bool loop = true, float volume = 1f)
+        {
+            if (clip == null) return;
+            bgmSource.clip = clip;
+            bgmSource.loop = loop;
+            bgmSource.volume = volume;
+            bgmSource.Play();
+        }
+
+        public void StopBGM()
+        {
+            if (bgmSource.isPlaying) bgmSource.Stop();
+        }
+
+        public void PlaySE(AudioClip clip, float volume = 1f)
+        {
+            if (clip == null) return;
+            seSource.PlayOneShot(clip, volume);
+        }
+
+        // UI Slider bindings (0..1). Hook these from Slider OnValueChanged(float)
+        public void SetBGMVolume01(float normalized)
+        {
+            SetMixerVolumeNormalized(bgmVolumeParameter, normalized);
+        }
+
+        public void SetSEVolume01(float normalized)
+        {
+            SetMixerVolumeNormalized(seVolumeParameter, normalized);
+        }
+
+        // Optional helpers to initialize sliders from current mixer values
+        public float GetBGMVolume01()
+        {
+            return GetMixerVolumeNormalized(bgmVolumeParameter);
+        }
+
+        public float GetSEVolume01()
+        {
+            return GetMixerVolumeNormalized(seVolumeParameter);
+        }
+
+        private void SetMixerVolumeNormalized(string parameter, float normalized01)
+        {
+            if (audioMixer == null || string.IsNullOrEmpty(parameter)) return;
+            float clamped = Mathf.Clamp01(normalized01);
+            float dB = clamped <= 0.0001f ? -80f : Mathf.Log10(clamped) * 20f; // perceptual curve
+            audioMixer.SetFloat(parameter, dB);
+        }
+
+        private float GetMixerVolumeNormalized(string parameter)
+        {
+            if (audioMixer == null || string.IsNullOrEmpty(parameter)) return 0f;
+            if (!audioMixer.GetFloat(parameter, out float dB)) return 0f;
+            // inverse of 20*log10(x), clamp to [0,1]
+            float linear = Mathf.Pow(10f, dB / 20f);
+            return Mathf.Clamp01(linear);
+        }
+    }
+}
+
+
