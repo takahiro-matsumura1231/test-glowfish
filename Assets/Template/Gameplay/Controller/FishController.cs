@@ -84,8 +84,12 @@ namespace Template.Gameplay.Controller
             }
             if (fishStatus == null)
                 fishStatus = GetComponent<FishStatus>();
-            if (fishImage == null)
+            if (fishImage == null || fishImage.Equals(null))
                 fishImage = GetComponent<Image>();
+            if ((fishImage == null || fishImage.Equals(null)))
+                fishImage = GetComponentInChildren<Image>(true);
+            if (fishImage == null || fishImage.Equals(null))
+                Debug.LogWarning("FishController: Image component not found on self/children. Sprites won't update.");
         }
 
         private void OnEnable()
@@ -144,6 +148,15 @@ namespace Template.Gameplay.Controller
             {
                 box.size = boxColliderSizePerLevel[idx];
             }
+        }
+
+        // Returns the current sprite and visual size used for the fish. 
+        // Useful for showing the final growth stage in results.
+        public bool TryGetCurrentVisual(out Sprite sprite, out Vector2 size)
+        {
+            sprite = (fishImage != null) ? fishImage.sprite : null;
+            size = (targetRect != null) ? targetRect.sizeDelta : Vector2.zero;
+            return (sprite != null);
         }
 
         private void Update()
@@ -224,6 +237,9 @@ namespace Template.Gameplay.Controller
                 {
                     // Enemy is edible: count as food based on enemy level
                     fishStatus.AddFood(Mathf.Max(1, enemyLevel));
+                    // Award score based on enemy level
+                    var gm = GameManager.Instance;
+                    if (gm != null) gm.AddScoreForEnemyLevel(enemyLevel);
                     if (destroyEnemyOnEat)
                     {
                         Destroy(enemy.gameObject);

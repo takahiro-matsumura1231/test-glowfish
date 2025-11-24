@@ -7,6 +7,7 @@ namespace Template.Core
         public static Action<int> OnScoreChanged;
         public static Action OnFishGrow;
         public static Action<GameState> OnGameStateChanged;
+        public static Action<float> OnTimeChanged;
     }
 }
 

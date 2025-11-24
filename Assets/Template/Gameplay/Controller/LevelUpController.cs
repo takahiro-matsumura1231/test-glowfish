@@ -40,6 +40,21 @@ namespace Template.Gameplay.Controller
 		private Text cachedText;
 		private bool isPlaying = false;
 
+		private void Awake()
+		{
+			// Ensure clean state on domain reload / play start
+			cachedBgRect = null;
+			cachedBgGroup = null;
+			cachedBgImage = null;
+			cachedFishRect = null;
+			cachedFishGroup = null;
+			cachedFishImage = null;
+			cachedTextRect = null;
+			cachedTextGroup = null;
+			cachedText = null;
+			isPlaying = false;
+		}
+
 		public void PlayLevelUp(Sprite beforeSprite, Sprite afterSprite, Vector2 beforeSize, Vector2 afterSize)
 		{
 			if (!Application.isPlaying) return;
@@ -78,6 +93,7 @@ namespace Template.Gameplay.Controller
 			if (cachedBgRect == null)
 			{
 				var bgGO = new GameObject("LevelUpBG", typeof(RectTransform), typeof(CanvasGroup), typeof(Image));
+				bgGO.hideFlags = HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild | HideFlags.HideInHierarchy;
 				cachedBgRect = bgGO.GetComponent<RectTransform>();
 				cachedBgGroup = bgGO.GetComponent<CanvasGroup>();
 				cachedBgImage = bgGO.GetComponent<Image>();
@@ -112,6 +128,7 @@ namespace Template.Gameplay.Controller
 			if (cachedFishRect == null)
 			{
 				var fishGO = new GameObject("LevelUpFish", typeof(RectTransform), typeof(CanvasGroup), typeof(Image));
+				fishGO.hideFlags = HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild | HideFlags.HideInHierarchy;
 				cachedFishRect = fishGO.GetComponent<RectTransform>();
 				cachedFishGroup = fishGO.GetComponent<CanvasGroup>();
 				cachedFishImage = fishGO.GetComponent<Image>();
@@ -132,6 +149,7 @@ namespace Template.Gameplay.Controller
 			if (cachedTextRect == null)
 			{
 				var textGO = new GameObject("LevelUpText", typeof(RectTransform), typeof(CanvasGroup), typeof(Text));
+				textGO.hideFlags = HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild | HideFlags.HideInHierarchy;
 				cachedTextRect = textGO.GetComponent<RectTransform>();
 				cachedTextGroup = textGO.GetComponent<CanvasGroup>();
 				cachedText = textGO.GetComponent<Text>();

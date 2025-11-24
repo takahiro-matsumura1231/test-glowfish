@@ -1,5 +1,7 @@
 using UnityEngine;
 using System;
+using TMPro;
+using UnityEngine.UI;
 
 namespace Template.Core
 {
@@ -16,15 +18,24 @@ namespace Template.Core
 
         [Header("Components")]
         [SerializeField] private GameObject ReStartButton;
+        [SerializeField] private TMP_Text timerText;
+        [SerializeField] private TMP_Text gameScoreText;
+        [SerializeField] private TMP_Text winScoreText;
+        [Header("Win UI")]
+        [SerializeField] private Image winFishImage;
 
         private void OnEnable()
         {
             EventBus.OnGameStateChanged += HandleStateChanged;
+            EventBus.OnTimeChanged += HandleTimeChanged;
+            EventBus.OnScoreChanged += HandleScoreChanged;
         }
 
         private void OnDisable()
         {
             EventBus.OnGameStateChanged -= HandleStateChanged;
+            EventBus.OnTimeChanged -= HandleTimeChanged;
+            EventBus.OnScoreChanged -= HandleScoreChanged;
         }
 
         private void Start()
@@ -33,6 +44,12 @@ namespace Template.Core
             if (manager != null)
             {
                 HandleStateChanged(manager.CurrentState);
+                HandleScoreChanged(manager.CurrentScore);
+                // If already in Win state (debug), ensure image shows
+                if (manager.CurrentState == GameState.Win)
+                {
+                    ApplyWinFishImage(manager);
+                }
             }
         }
 
@@ -45,6 +62,13 @@ namespace Template.Core
             // settingsPopup is independent; do not change here
 
             UpdateComponents(state);
+            // Ensure win screen shows latest score
+            if (state == GameState.Win)
+            {
+                var manager = GameManager.Instance;
+                if (manager != null) HandleScoreChanged(manager.CurrentScore);
+                if (manager != null) ApplyWinFishImage(manager);
+            }
         }
         
         private void UpdateComponents(GameState state)
@@ -53,6 +77,27 @@ namespace Template.Core
             {
                 bool shouldBeActive = (state != GameState.Menu);
                 SetActiveSafe(ReStartButton, shouldBeActive);
+            }
+        }
+
+        private void ApplyWinFishImage(GameManager manager)
+        {
+            if (winFishImage == null || manager == null) return;
+            winFishImage.sprite = manager.FinalFishSprite;
+            if (manager.FinalFishSprite != null)
+            {
+                winFishImage.preserveAspect = true;
+                // Optionally mirror the in-game size if provided
+                if (manager.FinalFishSize != Vector2.zero)
+                {
+                    var rect = winFishImage.rectTransform;
+                    if (rect != null) rect.sizeDelta = manager.FinalFishSize;
+                }
+                winFishImage.gameObject.SetActive(true);
+            }
+            else
+            {
+                winFishImage.gameObject.SetActive(false);
             }
         }
 
@@ -79,6 +124,27 @@ namespace Template.Core
         {
             if (settingsPopup == null) return;
             settingsPopup.SetActive(!settingsPopup.activeSelf);
+        }
+
+        private void HandleTimeChanged(float remainingSeconds)
+        {
+            if (timerText == null) return;
+            int total = Mathf.CeilToInt(remainingSeconds);
+            int minutes = total / 60;
+            int seconds = total % 60;
+            timerText.text = $"{minutes:00}:{seconds:00}";
+        }
+
+        private void HandleScoreChanged(int score)
+        {
+            if (gameScoreText != null)
+            {
+                gameScoreText.text = score.ToString();
+            }
+            if (winScoreText != null)
+            {
+                winScoreText.text = score.ToString();
+            }
         }
     }
 }
