@@ -84,6 +84,16 @@ namespace Template.Core
             EventBus.OnGameStateChanged?.Invoke(next);
         }
 
+        public void StopGame()
+        {
+            Time.timeScale = 0f;
+        }
+
+        public void ResumeGame()
+        {
+            Time.timeScale = 1f;
+        }
+
         private void Update()
         {
             if (CurrentState != GameState.Game || !timerRunning) return;

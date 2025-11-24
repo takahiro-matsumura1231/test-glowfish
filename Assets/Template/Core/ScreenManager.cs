@@ -187,12 +187,13 @@ namespace Template.Core
                 overlayRoot.gameObject.SetActive(true);
             }
 
-            // Circle collapsed and invisible
+            // Circle collapsed (no fade)
             if (overlayCircleImage != null)
             {
                 var circleRect = overlayCircleImage.rectTransform;
                 if (circleRect != null)
                 {
+                    DOTween.Kill(circleRect);
                     // Anchor and pivot at top-left so growth moves toward bottom-right
                     circleRect.anchorMin = new Vector2(0f, 1f);
                     circleRect.anchorMax = new Vector2(0f, 1f);
@@ -200,21 +201,20 @@ namespace Template.Core
                     circleRect.anchoredPosition = Vector2.zero;
                     circleRect.sizeDelta = Vector2.zero;
                 }
-                var cg = overlayCircleImage.GetComponent<CanvasGroup>();
-                if (cg == null) cg = overlayCircleImage.gameObject.AddComponent<CanvasGroup>();
-                cg.alpha = 0f;
                 overlayCircleImage.gameObject.SetActive(true);
             }
 
-            // TIMEUP text hidden
+            // TIMEUP text prepare (no fade)
             if (timeUpText != null)
             {
-                var cg = timeUpText.GetComponent<CanvasGroup>();
-                if (cg == null) cg = timeUpText.gameObject.AddComponent<CanvasGroup>();
-                cg.alpha = 0f;
                 var tr = timeUpText.rectTransform;
-                if (tr != null) tr.localScale = Vector3.one * 0.9f;
-                timeUpText.gameObject.SetActive(true);
+                if (tr != null)
+                {
+                    DOTween.Kill(tr);
+                    tr.localScale = Vector3.one * 0.9f;
+                }
+                // hide until the TIMEUP step begins to ensure identical animation each play
+                timeUpText.gameObject.SetActive(false);
             }
         }
 
@@ -232,16 +232,7 @@ namespace Template.Core
             float diag = Mathf.Sqrt(parentSize.x * parentSize.x + parentSize.y * parentSize.y);
             float targetDiameter = diag * 1.7f; // safety margin
 
-            var circleCg = (overlayCircleImage != null)
-                ? (overlayCircleImage.GetComponent<CanvasGroup>() ?? overlayCircleImage.gameObject.AddComponent<CanvasGroup>())
-                : null;
-            var timeUpCg = (timeUpText != null)
-                ? (timeUpText.GetComponent<CanvasGroup>() ?? timeUpText.gameObject.AddComponent<CanvasGroup>())
-                : null;
-
             if (circleRect != null) circleRect.sizeDelta = Vector2.zero;
-            if (circleCg != null) circleCg.alpha = 0f;
-            if (timeUpCg != null) timeUpCg.alpha = 0f;
             if (timeUpText != null && timeUpText.rectTransform != null) timeUpText.rectTransform.localScale = Vector3.one * 0.9f;
 
             overlaySequence = DOTween.Sequence();
@@ -249,29 +240,23 @@ namespace Template.Core
             if (circleRect != null)
             {
                 overlaySequence.Append(circleRect.DOSizeDelta(new Vector2(targetDiameter, targetDiameter), circleExpandDuration).SetEase(Ease.OutQuad));
-                if (circleCg != null)
-                {
-                    overlaySequence.Join(circleCg.DOFade(1f, circleExpandDuration));
-                }
             }
             // 2) TIMEUP fade + scale
-            if (timeUpCg != null && timeUpText != null)
+            if (timeUpText != null)
             {
-                overlaySequence.Append(timeUpCg.DOFade(1f, timeUpFadeDuration).SetEase(Ease.OutQuad));
+                overlaySequence.AppendCallback(() =>
+                {
+                    if (timeUpText != null) timeUpText.gameObject.SetActive(true);
+                });
                 overlaySequence.Join(timeUpText.rectTransform.DOScale(1f, timeUpFadeDuration).SetEase(Ease.OutQuad));
             }
             // 3) Hold
             overlaySequence.AppendInterval(timeUpHoldDuration);
-            // 4) TIMEUP fade out
-            if (timeUpCg != null)
-            {
-                overlaySequence.Append(timeUpCg.DOFade(0f, 1.0f));
-            }
+            // 4) No TIMEUP fade out (kept visible until Win transition)
             // On complete → move to Win
             overlaySequence.OnComplete(() =>
             {
-                // Hide overlay elements before switching state to avoid leftover visuals on next play
-                ResetOverlay();
+                // Do not hide overlay yet; Win will crossfade in while overlay fades out.
                 var gm = GameManager.Instance;
                 if (gm != null) gm.WinGame();
             });
@@ -295,6 +280,8 @@ namespace Template.Core
                 winResultsGroup.alpha = 1f;
                 winResultsGroup.interactable = true;
                 winResultsGroup.blocksRaycasts = true;
+                // Now that Win is fully visible, turn off the overlay canvas
+                ResetOverlay();
             });
         }
 
@@ -303,19 +290,44 @@ namespace Template.Core
             if (overlayCircleImage != null)
             {
                 var circleRect = overlayCircleImage.rectTransform;
-                if (circleRect != null) circleRect.sizeDelta = Vector2.zero;
-                var cg = overlayCircleImage.GetComponent<CanvasGroup>();
-                if (cg == null) cg = overlayCircleImage.gameObject.AddComponent<CanvasGroup>();
-                cg.alpha = 0f;
+                if (circleRect != null)
+                {
+                    DOTween.Kill(circleRect);
+                    circleRect.sizeDelta = Vector2.zero;
+                }
             }
             if (timeUpText != null)
             {
-                var cg = timeUpText.GetComponent<CanvasGroup>();
-                if (cg == null) cg = timeUpText.gameObject.AddComponent<CanvasGroup>();
-                cg.alpha = 0f;
-                if (timeUpText.rectTransform != null) timeUpText.rectTransform.localScale = Vector3.one * 0.9f;
+                if (timeUpText.rectTransform != null)
+                {
+                    DOTween.Kill(timeUpText.rectTransform);
+                    timeUpText.rectTransform.localScale = Vector3.one * 0.9f;
+                }
+                timeUpText.gameObject.SetActive(false);
             }
             if (overlayRoot != null) overlayRoot.gameObject.SetActive(false);
+        }
+
+        private void HideOverlayVisuals()
+        {
+            if (overlayCircleImage != null)
+            {
+                var circleRect = overlayCircleImage.rectTransform;
+                if (circleRect != null)
+                {
+                    DOTween.Kill(circleRect);
+                    circleRect.sizeDelta = Vector2.zero;
+                }
+            }
+            if (timeUpText != null)
+            {
+                if (timeUpText.rectTransform != null)
+                {
+                    DOTween.Kill(timeUpText.rectTransform);
+                    timeUpText.rectTransform.localScale = Vector3.one * 0.9f;
+                }
+            }
+            // Keep overlayRoot active until Win fully fades in
         }
     }
 }
