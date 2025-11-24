@@ -224,6 +224,12 @@ namespace Template.Gameplay.Controller
 
         private void OnTriggerEnter2D(Collider2D other)
         {
+            var gm = GameManager.Instance;
+            if (gm != null && gm.IsClearing)
+            {
+                // Ignore collisions during clear sequence
+                return;
+            }
             if (fishStatus == null) return;
 
             EnemyStatus enemy = other.GetComponent<EnemyStatus>();
@@ -237,8 +243,7 @@ namespace Template.Gameplay.Controller
                 {
                     // Enemy is edible: count as food based on enemy level
                     fishStatus.AddFood(Mathf.Max(1, enemyLevel));
-                    // Award score based on enemy level
-                    var gm = GameManager.Instance;
+                    // Award score based on enemy levels
                     if (gm != null) gm.AddScoreForEnemyLevel(enemyLevel);
                     if (destroyEnemyOnEat)
                     {

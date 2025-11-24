@@ -8,6 +8,7 @@ namespace Template.Core
         public static Action OnFishGrow;
         public static Action<GameState> OnGameStateChanged;
         public static Action<float> OnTimeChanged;
+        public static Action OnGameTimeExpired;
     }
 }
 

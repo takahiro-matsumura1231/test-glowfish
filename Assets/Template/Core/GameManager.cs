@@ -9,6 +9,7 @@ namespace Template.Core
     public class GameManager : MonoBehaviourSingleton<GameManager>
     {
         public GameState CurrentState { get; private set; } = GameState.Menu;
+        public bool IsClearing { get; private set; } = false;
         [Header("Score")]
         [SerializeField] private int pointsLevel1 = 5;
         [SerializeField] private int pointsLevel2 = 20;
@@ -31,6 +32,7 @@ namespace Template.Core
         {
             GameplayInitializer.Instance.InitializeForGameStart();
             ResetScore();
+            IsClearing = false;
             FinalFishSprite = null;
             FinalFishSize = Vector2.zero;
             remainingTimeSeconds = Mathf.Max(0f, gameDurationSeconds);
@@ -58,6 +60,7 @@ namespace Template.Core
         {
             timerRunning = false;
             EnemySpawner.Instance.StopSpawning();
+            IsClearing = false;
             SetState(GameState.Menu);
         }
 
@@ -65,6 +68,7 @@ namespace Template.Core
         {
             timerRunning = false;
             EnemySpawner.Instance.StopSpawning();
+            IsClearing = false;
             SetState(GameState.Menu);
         }
 
@@ -91,7 +95,10 @@ namespace Template.Core
             if (remainingTimeSeconds <= 0f)
             {
                 timerRunning = false;
-                WinGame();
+                // Stop new spawns and notify time up; overlay animation will run on top of Game, then transition to Win.
+                EnemySpawner.Instance.StopSpawning();
+                IsClearing = true;
+                EventBus.OnGameTimeExpired?.Invoke();
             }
         }
 
