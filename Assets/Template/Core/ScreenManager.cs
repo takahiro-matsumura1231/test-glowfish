@@ -25,6 +25,9 @@ namespace Template.Core
         [SerializeField] private TMP_Text winScoreText;
         [Header("Win UI")]
         [SerializeField] private Image winFishImage;
+		[Header("Lose UI")]
+		[SerializeField] private Image loseFishImage;
+		[SerializeField] private Material grayscaleUIMaterial;
         [Header("Game Overlay (Time Up)")]
         [SerializeField] private RectTransform overlayRoot;   // under gameRoot
         [SerializeField] private Image overlayCircleImage;    // anchored top-left
@@ -90,6 +93,11 @@ namespace Template.Core
                 if (manager != null) ApplyWinFishImage(manager);
                 PlayResultsFade();
             }
+			else if (state == GameState.Lose)
+			{
+				var manager = GameManager.Instance;
+				if (manager != null) ApplyLoseFishImage(manager);
+			}
             else if (state == GameState.Game)
             {
                 // Reset overlay visuals when re-entering Game
@@ -105,6 +113,32 @@ namespace Template.Core
                 SetActiveSafe(ReStartButton, shouldBeActive);
             }
         }
+
+		private void ApplyLoseFishImage(GameManager manager)
+		{
+			if (loseFishImage == null || manager == null) return;
+			loseFishImage.sprite = manager.FinalFishSprite;
+			if (manager.FinalFishSprite != null)
+			{
+				loseFishImage.preserveAspect = true;
+				// Mirror in-game size if available
+				if (manager.FinalFishSize != Vector2.zero)
+				{
+					var rect = loseFishImage.rectTransform;
+					if (rect != null) rect.sizeDelta = manager.FinalFishSize;
+				}
+				// Apply grayscale material (per-instance)
+				if (grayscaleUIMaterial != null)
+				{
+					loseFishImage.material = grayscaleUIMaterial;
+				}
+				loseFishImage.gameObject.SetActive(true);
+			}
+			else
+			{
+				loseFishImage.gameObject.SetActive(false);
+			}
+		}
 
         private void ApplyWinFishImage(GameManager manager)
         {
@@ -201,6 +235,11 @@ namespace Template.Core
                     circleRect.anchoredPosition = Vector2.zero;
                     circleRect.sizeDelta = Vector2.zero;
                 }
+                // Start fully transparent, will fade in while expanding
+                DOTween.Kill(overlayCircleImage);
+                Color c = overlayCircleImage.color;
+                c.a = 0f;
+                overlayCircleImage.color = c;
                 overlayCircleImage.gameObject.SetActive(true);
             }
 
@@ -240,6 +279,10 @@ namespace Template.Core
             if (circleRect != null)
             {
                 overlaySequence.Append(circleRect.DOSizeDelta(new Vector2(targetDiameter, targetDiameter), circleExpandDuration).SetEase(Ease.OutQuad));
+                if (overlayCircleImage != null)
+                {
+                    overlaySequence.Join(overlayCircleImage.DOFade(1f, circleExpandDuration).SetEase(Ease.OutQuad));
+                }
             }
             // 2) TIMEUP fade + scale
             if (timeUpText != null)

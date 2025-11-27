@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace Template.Core
 {
@@ -9,6 +10,7 @@ namespace Template.Core
         public static Action<GameState> OnGameStateChanged;
         public static Action<float> OnTimeChanged;
         public static Action OnGameTimeExpired;
+		public static Action<Vector3, int> OnEnemyEaten;
     }
 }
 

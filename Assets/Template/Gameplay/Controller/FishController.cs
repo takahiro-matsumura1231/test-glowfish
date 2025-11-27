@@ -115,6 +115,7 @@ namespace Template.Gameplay.Controller
             // Only animate when actually leveling up to 2 or 3, not on init/reset
             if (newLevel >= 2)
             {
+				AudioManager.Instance?.PlayLevelUpSE();
                 Sprite beforeSprite = (fishImage != null) ? fishImage.sprite : null;
                 int idx = Mathf.Clamp(newLevel - 1, 0, 2);
                 Sprite afterSprite = (levelSprites != null && idx < levelSprites.Length) ? levelSprites[idx] : beforeSprite;
@@ -245,6 +246,13 @@ namespace Template.Gameplay.Controller
                     fishStatus.AddFood(Mathf.Max(1, enemyLevel));
                     // Award score based on enemy levels
                     if (gm != null) gm.AddScoreForEnemyLevel(enemyLevel);
+					// SE
+					AudioManager.Instance?.PlayEatEnemySE();
+					// Popup praise
+					{
+						Vector3 worldPos = enemy.transform.position;
+						EventBus.OnEnemyEaten?.Invoke(worldPos, enemyLevel);
+					}
                     if (destroyEnemyOnEat)
                     {
                         Destroy(enemy.gameObject);
@@ -267,6 +275,7 @@ namespace Template.Gameplay.Controller
             if (other.CompareTag("Food"))
             {
                 fishStatus.AddFood(1);
+				AudioManager.Instance?.PlayEatFoodSE();
                 Destroy(other.gameObject);
             }
         }

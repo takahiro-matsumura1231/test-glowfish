@@ -38,6 +38,7 @@ namespace Template.Core
             remainingTimeSeconds = Mathf.Max(0f, gameDurationSeconds);
             timerRunning = true;
             EventBus.OnTimeChanged?.Invoke(remainingTimeSeconds);
+			AudioManager.Instance?.PlayDefaultBGM();
             SetState(GameState.Game);
         }
 
@@ -46,13 +47,16 @@ namespace Template.Core
             CaptureFinalFishVisual();
             timerRunning = false;
             EnemySpawner.Instance.StopSpawning();
+			AudioManager.Instance?.PlayWinSE();
             SetState(GameState.Win);
         }
 
         public void LoseGame()
         {
+			CaptureFinalFishVisual();
             timerRunning = false;
             EnemySpawner.Instance.StopSpawning();
+			AudioManager.Instance?.PlayLoseSE();
             SetState(GameState.Lose);
         }
 

@@ -16,6 +16,19 @@ namespace Template.Core
         [SerializeField] private string bgmVolumeParameter = "BGM";
         [SerializeField] private string seVolumeParameter = "SE";
 
+		[Header("Default Clips")]
+		[SerializeField] private AudioClip defaultBGMClip;
+		[SerializeField] private AudioClip eatEnemySEClip;
+		[SerializeField] private AudioClip eatFoodSEClip;
+		[SerializeField] private float defaultBGMVolume = 1f;
+		[SerializeField] private float defaultSEVolume = 1f;
+
+		[Header("UI/Events Clips")]
+		[SerializeField] private AudioClip buttonClickSEClip;
+		[SerializeField] private AudioClip levelUpSEClip;
+		[SerializeField] private AudioClip winSEClip;
+		[SerializeField] private AudioClip loseSEClip;
+
         protected override void SingletonAwakened()
         {
             if (bgmSource == null)
@@ -54,6 +67,42 @@ namespace Template.Core
             if (clip == null) return;
             seSource.PlayOneShot(clip, volume);
         }
+
+		// Convenience wrappers
+		public void PlayDefaultBGM()
+		{
+			PlayBGM(defaultBGMClip, true, defaultBGMVolume);
+		}
+
+		public void PlayEatEnemySE()
+		{
+			PlaySE(eatEnemySEClip, defaultSEVolume);
+		}
+
+		public void PlayEatFoodSE()
+		{
+			PlaySE(eatFoodSEClip, defaultSEVolume);
+		}
+
+		public void PlayButtonClickSE()
+		{
+			PlaySE(buttonClickSEClip, defaultSEVolume);
+		}
+
+		public void PlayLevelUpSE()
+		{
+			PlaySE(levelUpSEClip, defaultSEVolume);
+		}
+
+		public void PlayWinSE()
+		{
+			PlaySE(winSEClip, defaultSEVolume);
+		}
+
+		public void PlayLoseSE()
+		{
+			PlaySE(loseSEClip, defaultSEVolume);
+		}
 
         // UI Slider bindings (0..1). Hook these from Slider OnValueChanged(float)
         public void SetBGMVolume01(float normalized)
