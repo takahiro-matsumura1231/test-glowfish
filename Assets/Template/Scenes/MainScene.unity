@@ -2841,8 +2841,8 @@ GameObject:
   - component: {fileID: 1973585230}
   - component: {fileID: 1973585229}
   - component: {fileID: 1973585234}
-  - component: {fileID: 1973585232}
   - component: {fileID: 1973585233}
+  - component: {fileID: 1973585236}
   m_Layer: 5
   m_Name: Fish
   m_TagString: Untagged
@@ -2945,52 +2945,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1973585227}
   m_CullTransparentMesh: 1
---- !u!61 &1973585232
-BoxCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1973585227}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_CompositeOperation: 0
-  m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0, y: 0}
-    oldSize: {x: 0, y: 0}
-    newSize: {x: 0, y: 0}
-    adaptiveTilingThreshold: 0
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Size: {x: 200, y: 100}
-  m_EdgeRadius: 0
 --- !u!50 &1973585233
 Rigidbody2D:
   serializedVersion: 5
@@ -3033,6 +2987,22 @@ MonoBehaviour:
   level: 1
   foodToLevel2: 5
   foodToLevel3: 12
+--- !u!114 &1973585236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1973585227}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05e8b598a548f4214b16d02f968f00a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Template.Gameplay.Controller.ImageSpriteColliderSync
+  polygonCollider: {fileID: 0}
+  addColliderIfMissing: 1
+  autoSyncOnStart: 1
+  makeTriggerIfUnset: 1
 --- !u!1 &2043020423
 GameObject:
   m_ObjectHideFlags: 0
