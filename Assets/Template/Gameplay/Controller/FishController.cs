@@ -144,11 +144,17 @@ namespace Template.Gameplay.Controller
                 targetRect.localScale = new Vector3(Mathf.Sign(s.x) * Mathf.Abs(originalScale.x), originalScale.y, originalScale.z);
             }
             // Collider size (BoxCollider2D)
-            var box = GetComponent<BoxCollider2D>();
-            if (box != null && boxColliderSizePerLevel != null && idx < boxColliderSizePerLevel.Length && boxColliderSizePerLevel[idx] != Vector2.zero)
-            {
-                box.size = boxColliderSizePerLevel[idx];
-            }
+			var box = GetComponent<BoxCollider2D>();
+			if (box != null && boxColliderSizePerLevel != null && idx < boxColliderSizePerLevel.Length && boxColliderSizePerLevel[idx] != Vector2.zero)
+			{
+				box.size = boxColliderSizePerLevel[idx];
+			}
+			// Prefer polygon collider synced from sprite physics shape if available
+			var sync = GetComponent<ImageSpriteColliderSync>();
+			if (sync != null)
+			{
+				sync.SyncNow();
+			}
         }
 
         // Returns the current sprite and visual size used for the fish. 
