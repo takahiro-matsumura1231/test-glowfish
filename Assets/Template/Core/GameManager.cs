@@ -86,6 +86,12 @@ namespace Template.Core
             StartGame();
         }
 
+		// Menu → Name entry
+		public void GoToNameEntry()
+		{
+			SetState(GameState.NameEntry);
+		}
+
         private void SetState(GameState next)
         {
             if (CurrentState == next) return;

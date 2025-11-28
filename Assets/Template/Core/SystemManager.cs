@@ -13,6 +13,7 @@ namespace Template.Core
         {
             _ = GameManager.Instance;
             _ = AudioManager.Instance;
+			_ = RankingManager.Instance;
         }
     }
 }

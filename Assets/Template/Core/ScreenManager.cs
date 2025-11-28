@@ -15,6 +15,8 @@ namespace Template.Core
         [SerializeField] private GameObject winRoot;
         [SerializeField] private GameObject loseRoot;
         [SerializeField] private GameObject RankingsRoot;
+		[SerializeField] private GameObject nameEntryRoot;
+		[SerializeField] private TMP_InputField playerNameInput;
 
         [Header("Popup")]
         [SerializeField] private GameObject settingsPopup;
@@ -29,6 +31,8 @@ namespace Template.Core
 		[Header("Lose UI")]
 		[SerializeField] private Image loseFishImage;
 		[SerializeField] private Material grayscaleUIMaterial;
+		[Header("Game HUD")]
+		[SerializeField] private TMP_Text gamePlayerNameText;
         [Header("Game Overlay (Time Up)")]
         [SerializeField] private RectTransform overlayRoot;   // under gameRoot
         [SerializeField] private Image overlayCircleImage;    // anchored top-left
@@ -84,6 +88,7 @@ namespace Template.Core
             SetActiveSafe(winRoot, state == GameState.Win);
             SetActiveSafe(loseRoot, state == GameState.Lose);
             SetActiveSafe(RankingsRoot, state == GameState.Rankings);
+			SetActiveSafe(nameEntryRoot, state == GameState.NameEntry);
             // settingsPopup is independent; do not change here
 
             UpdateComponents(state);
@@ -104,8 +109,36 @@ namespace Template.Core
             {
                 // Reset overlay visuals when re-entering Game
                 ResetOverlay();
+				// Show player name on HUD
+				if (gamePlayerNameText != null)
+				{
+					gamePlayerNameText.text = RankingManager.Instance != null ? RankingManager.Instance.PlayerName : "Player";
+				}
             }
+			else if (state == GameState.Rankings)
+			{
+				// Ensure ranking refresh each time we open the rankings screen
+				if (RankingsRoot != null)
+				{
+					var screen = RankingsRoot.GetComponentInChildren<RankingScreen>(true);
+					if (screen != null) screen.Refresh();
+				}
+			}
         }
+		
+		// Name Entry controls
+		public void OpenNameEntry()
+		{
+			GameManager.Instance?.GoToNameEntry();
+		}
+		
+		public void ConfirmPlayerNameAndStart()
+		{
+			string name = (playerNameInput != null) ? playerNameInput.text : null;
+			if (string.IsNullOrWhiteSpace(name)) name = "Player";
+			RankingManager.Instance.PlayerName = name.Trim();
+			GameManager.Instance?.StartGame();
+		}
         
         private void UpdateComponents(GameState state)
         {

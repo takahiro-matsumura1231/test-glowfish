@@ -23,6 +23,7 @@ namespace Template.Core
 		[SerializeField] private string playerName = "Player";
 		[SerializeField] private int maxEntriesToKeep = 100;
 		[SerializeField] private string prefsKey = "RANKING_DATA";
+		[SerializeField] private bool enableDebugLogs = false;
 
 		private ScoreData cached;
 
@@ -46,15 +47,35 @@ namespace Template.Core
 		{
 			if (score < 0) score = 0;
 			if (string.IsNullOrEmpty(name)) name = "Player";
+			name = name.Trim();
 			var data = Load();
 			if (data == null) data = new ScoreData();
-			var entry = new ScoreEntry
+			// Keep only one entry per name: update if higher, otherwise keep existing
+			int existingIndex = data.entries.FindIndex(e => string.Equals(e.name, name, StringComparison.Ordinal));
+			if (existingIndex >= 0)
 			{
-				score = score,
-				name = name,
-				unixTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-			};
-			data.entries.Add(entry);
+				if (score > data.entries[existingIndex].score)
+				{
+					data.entries[existingIndex].score = score;
+					data.entries[existingIndex].unixTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+					if (enableDebugLogs) Debug.Log($"[Ranking] Updated score for {name} -> {score}");
+				}
+				else
+				{
+					if (enableDebugLogs) Debug.Log($"[Ranking] Kept existing higher/equal score for {name} ({data.entries[existingIndex].score} >= {score})");
+				}
+			}
+			else
+			{
+				var entry = new ScoreEntry
+				{
+					score = score,
+					name = name,
+					unixTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+				};
+				data.entries.Add(entry);
+				if (enableDebugLogs) Debug.Log($"[Ranking] Added score={score} name={name}. Total(before sort)={data.entries.Count}");
+			}
 			data.entries.Sort((a, b) =>
 			{
 				int cmp = b.score.CompareTo(a.score);
@@ -64,18 +85,22 @@ namespace Template.Core
 			if (maxEntriesToKeep > 0 && data.entries.Count > maxEntriesToKeep)
 			{
 				data.entries.RemoveRange(maxEntriesToKeep, data.entries.Count - maxEntriesToKeep);
+				if (enableDebugLogs) Debug.Log($"[Ranking] Trimmed to {maxEntriesToKeep}");
 			}
 			Save(data);
 		}
 
 		public IReadOnlyList<ScoreEntry> GetAllScores()
 		{
-			return Load()?.entries ?? new List<ScoreEntry>();
+			var d = Load();
+			if (enableDebugLogs) Debug.Log($"[Ranking] GetAllScores count={(d?.entries?.Count ?? 0)}");
+			return d?.entries ?? new List<ScoreEntry>();
 		}
 
 		public IReadOnlyList<ScoreEntry> GetTopScores(int count)
 		{
 			var list = Load()?.entries ?? new List<ScoreEntry>();
+			if (enableDebugLogs) Debug.Log($"[Ranking] GetTopScores({count}) returning {Mathf.Clamp(count,0,list.Count)} of {list.Count}");
 			int take = Mathf.Clamp(count, 0, list.Count);
 			return list.GetRange(0, take);
 		}
@@ -87,6 +112,7 @@ namespace Template.Core
 			if (string.IsNullOrEmpty(json))
 			{
 				cached = new ScoreData();
+				if (enableDebugLogs) Debug.Log("[Ranking] No save found. Starting fresh.");
 			}
 			else
 			{
@@ -94,10 +120,12 @@ namespace Template.Core
 				{
 					cached = JsonUtility.FromJson<ScoreData>(json);
 					if (cached == null) cached = new ScoreData();
+					if (enableDebugLogs) Debug.Log($"[Ranking] Loaded {cached.entries.Count} entries.");
 				}
 				catch
 				{
 					cached = new ScoreData();
+					if (enableDebugLogs) Debug.LogWarning("[Ranking] Load failed. Resetting.");
 				}
 			}
 			return cached;
@@ -109,6 +137,7 @@ namespace Template.Core
 			string json = JsonUtility.ToJson(cached);
 			PlayerPrefs.SetString(prefsKey, json);
 			PlayerPrefs.Save();
+			if (enableDebugLogs) Debug.Log($"[Ranking] Saved entries={cached.entries.Count}");
 		}
 	}
 }

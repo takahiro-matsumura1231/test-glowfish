@@ -6,7 +6,8 @@ namespace Template.Core
         Game = 1,
         Win = 2,
         Lose = 3,
-        Rankings = 4,
+		Rankings = 4,
+		NameEntry = 5,
     }
 }
 
