@@ -31,6 +31,7 @@ namespace Template.Gameplay.Controller
         private Canvas canvas;
         private Vector2 currentVelocity = Vector2.zero;
         private Vector3 originalScale;
+		private Vector3 baseScaleMagnitude;
         private Vector2 initialAnchoredPosition;
         private bool movementLocked = false;
 
@@ -80,6 +81,12 @@ namespace Template.Gameplay.Controller
                 parentRect = targetRect.parent as RectTransform;
                 canvas = targetRect.GetComponentInParent<Canvas>();
                 originalScale = targetRect.localScale;
+				// Ensure we never collapse to zero scale; use at least 1 for baseline magnitude
+				baseScaleMagnitude = new Vector3(
+					Mathf.Max(1f, Mathf.Abs(originalScale.x)),
+					Mathf.Max(1f, Mathf.Abs(originalScale.y)),
+					Mathf.Max(1f, Mathf.Abs(originalScale.z))
+				);
                 initialAnchoredPosition = targetRect.anchoredPosition;
             }
             if (fishStatus == null)
@@ -141,7 +148,11 @@ namespace Template.Gameplay.Controller
                 targetRect.sizeDelta = imageSizePerLevel[idx];
                 // Keep scale magnitude as original; only horizontal sign may change later for flip
                 Vector3 s = targetRect.localScale;
-                targetRect.localScale = new Vector3(Mathf.Sign(s.x) * Mathf.Abs(originalScale.x), originalScale.y, originalScale.z);
+				targetRect.localScale = new Vector3(
+					Mathf.Sign(s.x) * baseScaleMagnitude.x,
+					baseScaleMagnitude.y,
+					baseScaleMagnitude.z
+				);
             }
             // Collider size (BoxCollider2D)
 			var box = GetComponent<BoxCollider2D>();
@@ -222,8 +233,8 @@ namespace Template.Gameplay.Controller
                     // Face right when moving right by flipping X.
                     float sign = (vx > 0f) ? -1f : 1f;
                     Vector3 scale = targetRect.localScale;
-                    scale.x = Mathf.Abs(originalScale.x) * sign;
-                    scale.y = originalScale.y;
+					scale.x = baseScaleMagnitude.x * sign;
+					scale.y = baseScaleMagnitude.y;
                     targetRect.localScale = scale; 
                 }
             }

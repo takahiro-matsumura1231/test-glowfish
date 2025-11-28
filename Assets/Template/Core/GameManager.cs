@@ -47,6 +47,11 @@ namespace Template.Core
             CaptureFinalFishVisual();
             timerRunning = false;
             EnemySpawner.Instance.StopSpawning();
+			// Record score to ranking
+			if (CurrentScore > 0)
+			{
+				RankingManager.Instance?.RecordWinScore(CurrentScore);
+			}
 			AudioManager.Instance?.PlayWinSE();
             SetState(GameState.Win);
         }
@@ -96,6 +101,16 @@ namespace Template.Core
         public void ResumeGame()
         {
             Time.timeScale = 1f;
+        }
+
+        public void GoRankings()
+        {
+            SetState(GameState.Rankings);
+        }
+
+        public void ExitRankings()
+        {
+            SetState(GameState.Menu);
         }
 
         private void Update()

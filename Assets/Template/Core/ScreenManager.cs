@@ -14,6 +14,7 @@ namespace Template.Core
         [SerializeField] private GameObject gameRoot;
         [SerializeField] private GameObject winRoot;
         [SerializeField] private GameObject loseRoot;
+        [SerializeField] private GameObject RankingsRoot;
 
         [Header("Popup")]
         [SerializeField] private GameObject settingsPopup;
@@ -82,6 +83,7 @@ namespace Template.Core
             SetActiveSafe(gameRoot, state == GameState.Game);
             SetActiveSafe(winRoot, state == GameState.Win);
             SetActiveSafe(loseRoot, state == GameState.Lose);
+            SetActiveSafe(RankingsRoot, state == GameState.Rankings);
             // settingsPopup is independent; do not change here
 
             UpdateComponents(state);
