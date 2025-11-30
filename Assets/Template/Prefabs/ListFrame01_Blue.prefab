@@ -324,6 +324,7 @@ MonoBehaviour:
   rankText: {fileID: 1033041481585463285}
   scoreText: {fileID: 43236233671473287}
   nameText: {fileID: 1899528171908380822}
+  trophyIcon: {fileID: 5395894517199066356}
 --- !u!1 &2853504469356141099
 GameObject:
   m_ObjectHideFlags: 0

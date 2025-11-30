@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using Template.Gameplay.Model;
 
 namespace Template.Gameplay.Controller
 {
@@ -15,6 +16,12 @@ namespace Template.Gameplay.Controller
 
 		private Image image;
 		private readonly List<Vector2> shapeBuffer = new List<Vector2>(128);
+		private float initialWidth;
+		private bool initialWidthSet = false;
+		private FishStatus fishStatus;
+		
+		// Level-based initial widths for fish
+		private static readonly float[] InitialWidthByLevel = { 200f, 300f, 600f }; // Level 1, 2, 3
 
 		private void Awake()
 		{
@@ -37,6 +44,31 @@ namespace Template.Gameplay.Controller
 					polygonCollider.isTrigger = true;
 				}
 			}
+			// Try to find FishStatus on this object or parent
+			if (fishStatus == null)
+			{
+				fishStatus = GetComponent<FishStatus>();
+				if (fishStatus == null && transform.parent != null)
+				{
+					fishStatus = transform.parent.GetComponent<FishStatus>();
+				}
+			}
+			
+			// Save initial width for aspect ratio preservation
+			if (image != null && !initialWidthSet)
+			{
+				var rt = image.rectTransform;
+				// If fish, use level-based width; otherwise use current width
+				if (fishStatus != null)
+				{
+					initialWidth = GetInitialWidthForLevel();
+				}
+				else
+				{
+					initialWidth = rt.rect.width;
+				}
+				initialWidthSet = true;
+			}
 		}
 
 		private void Start()
@@ -50,6 +82,48 @@ namespace Template.Gameplay.Controller
 			if (image == null || image.sprite == null || polygonCollider == null) return;
 
 			Sprite sprite = image.sprite;
+			
+			// Get FishStatus if not already cached
+			if (fishStatus == null)
+			{
+				fishStatus = GetComponent<FishStatus>();
+				if (fishStatus == null && transform.parent != null)
+				{
+					fishStatus = transform.parent.GetComponent<FishStatus>();
+				}
+			}
+			
+			// Update RectTransform size based on sprite aspect ratio
+			var rt = image.rectTransform;
+			if (!initialWidthSet)
+			{
+				// If fish, use level-based width; otherwise use current width
+				if (fishStatus != null)
+				{
+					initialWidth = GetInitialWidthForLevel();
+				}
+				else
+				{
+					initialWidth = rt.rect.width;
+				}
+				initialWidthSet = true;
+			}
+			else if (fishStatus != null)
+			{
+				// If fish and level might have changed, update initial width
+				initialWidth = GetInitialWidthForLevel();
+			}
+			
+			// Calculate aspect ratio from sprite
+			Vector2 spritePxSize = sprite.rect.size; // sprite pixels
+			if (spritePxSize.x > 0f && spritePxSize.y > 0f)
+			{
+				float aspectRatio = spritePxSize.x / spritePxSize.y;
+				float newHeight = initialWidth / aspectRatio;
+				rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, initialWidth);
+				rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, newHeight);
+			}
+			
 			int shapeCount = sprite.GetPhysicsShapeCount();
 			if (shapeCount <= 0)
 			{
@@ -59,9 +133,7 @@ namespace Template.Gameplay.Controller
 			}
 
 			// Map sprite physics shape (sprite local) -> RectTransform local (pixels relative to pivot) to match UI Image display
-			var rt = image.rectTransform;
 			Vector2 rectSize = rt.rect.size; // in UI pixels
-			Vector2 spritePxSize = sprite.rect.size; // sprite pixels
 			float ppu = sprite.pixelsPerUnit <= 0 ? 100f : sprite.pixelsPerUnit;
 			Vector2 scale = new Vector2(
 				(spritePxSize.x > 0f) ? (rectSize.x / spritePxSize.x) : 1f,
@@ -86,6 +158,17 @@ namespace Template.Gameplay.Controller
 				polygonCollider.SetPath(i, shapeBuffer);
 			}
 			// Keep offset at zero (paths already relative to pivot)
+		}
+		
+		private float GetInitialWidthForLevel()
+		{
+			int level = 1; // default to level 1
+			if (fishStatus != null)
+			{
+				level = fishStatus.Level;
+			}
+			int index = Mathf.Clamp(level - 1, 0, InitialWidthByLevel.Length - 1);
+			return InitialWidthByLevel[index];
 		}
 	}
 }

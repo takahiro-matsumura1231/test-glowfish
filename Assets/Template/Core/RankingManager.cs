@@ -20,7 +20,7 @@ namespace Template.Core
 
 	public class RankingManager : MonoBehaviourSingleton<RankingManager>
 	{
-		[SerializeField] private string playerName = "Player";
+		[SerializeField] private string playerName = "Guest";
 		[SerializeField] private int maxEntriesToKeep = 100;
 		[SerializeField] private string prefsKey = "RANKING_DATA";
 		[SerializeField] private bool enableDebugLogs = false;
@@ -30,7 +30,7 @@ namespace Template.Core
 		public string PlayerName
 		{
 			get => playerName;
-			set => playerName = string.IsNullOrEmpty(value) ? "Player" : value;
+			set => playerName = string.IsNullOrEmpty(value) ? "Guest" : value;
 		}
 
 		protected override void SingletonAwakened()
@@ -46,7 +46,7 @@ namespace Template.Core
 		public void AddScore(int score, string name)
 		{
 			if (score < 0) score = 0;
-			if (string.IsNullOrEmpty(name)) name = "Player";
+			if (string.IsNullOrEmpty(name)) name = "Guest";
 			name = name.Trim();
 			var data = Load();
 			if (data == null) data = new ScoreData();

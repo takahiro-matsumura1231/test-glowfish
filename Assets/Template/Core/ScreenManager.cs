@@ -112,7 +112,7 @@ namespace Template.Core
 				// Show player name on HUD
 				if (gamePlayerNameText != null)
 				{
-					gamePlayerNameText.text = RankingManager.Instance != null ? RankingManager.Instance.PlayerName : "Player";
+					gamePlayerNameText.text = RankingManager.Instance != null ? RankingManager.Instance.PlayerName : "Guest";
 				}
             }
 			else if (state == GameState.Rankings)
@@ -135,7 +135,7 @@ namespace Template.Core
 		public void ConfirmPlayerNameAndStart()
 		{
 			string name = (playerNameInput != null) ? playerNameInput.text : null;
-			if (string.IsNullOrWhiteSpace(name)) name = "Player";
+			if (string.IsNullOrWhiteSpace(name)) name = "Guest";
 			RankingManager.Instance.PlayerName = name.Trim();
 			GameManager.Instance?.StartGame();
 		}

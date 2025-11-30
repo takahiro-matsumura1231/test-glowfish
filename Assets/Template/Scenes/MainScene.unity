@@ -446,7 +446,7 @@ MonoBehaviour:
   pointsLevel1: 5
   pointsLevel2: 20
   pointsLevel3: 50
-  gameDurationSeconds: 60
+  gameDurationSeconds: 90
 --- !u!4 &34906962
 Transform:
   m_ObjectHideFlags: 0
@@ -3045,8 +3045,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Template.Gameplay.Model.FishStatus
   level: 1
-  foodToLevel2: 5
-  foodToLevel3: 12
+  foodToLevel2: 3
+  foodToLevel3: 6
 --- !u!114 &1973585236
 MonoBehaviour:
   m_ObjectHideFlags: 0
