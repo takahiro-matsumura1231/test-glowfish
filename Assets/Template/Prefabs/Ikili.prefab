@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &4835013056700961732
+--- !u!1 &5505082100278901778
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,27 +8,27 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3938166973682407937}
-  - component: {fileID: 4919309759439968790}
-  - component: {fileID: 1175180901727766295}
-  - component: {fileID: 1611787446609933255}
-  - component: {fileID: -1042075318511708235}
-  - component: {fileID: -1652334940086592304}
-  - component: {fileID: 2202200802873999495}
+  - component: {fileID: 7970489618013309882}
+  - component: {fileID: 2071957860278477204}
+  - component: {fileID: 3719424286777754620}
+  - component: {fileID: 2457139139012026449}
+  - component: {fileID: 810065825121110699}
+  - component: {fileID: 1830923218648355427}
+  - component: {fileID: 2171265911925567978}
   m_Layer: 5
-  m_Name: Enemy3
+  m_Name: Ikili
   m_TagString: Food
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!224 &3938166973682407937
+--- !u!224 &7970489618013309882
 RectTransform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4835013056700961732}
+  m_GameObject: {fileID: 5505082100278901778}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -38,24 +38,24 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 700, y: 700}
+  m_AnchoredPosition: {x: 17.221375, y: -218}
+  m_SizeDelta: {x: 250, y: 250}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!222 &4919309759439968790
+--- !u!222 &2071957860278477204
 CanvasRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4835013056700961732}
+  m_GameObject: {fileID: 5505082100278901778}
   m_CullTransparentMesh: 1
---- !u!114 &1175180901727766295
+--- !u!114 &3719424286777754620
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4835013056700961732}
+  m_GameObject: {fileID: 5505082100278901778}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
@@ -69,9 +69,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 7758cbf8f2f724af797be2a391ced4e6, type: 3}
+  m_Sprite: {fileID: 21300000, guid: d51ab601554c74c5aad4f6d8d0bdecee, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -79,31 +79,31 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &1611787446609933255
+--- !u!114 &2457139139012026449
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4835013056700961732}
+  m_GameObject: {fileID: 5505082100278901778}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b30d3bb8514b8453998908363ce2eab1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Template.Gameplay.Controller.EnemyController
-  targetRect: {fileID: 3938166973682407937}
+  targetRect: {fileID: 7970489618013309882}
   speed: 250
   direction: 1
   despawnMarginPixels: 20
   flipHorizontally: 1
---- !u!50 &-1042075318511708235
+--- !u!50 &810065825121110699
 Rigidbody2D:
   serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4835013056700961732}
+  m_GameObject: {fileID: 5505082100278901778}
   m_BodyType: 1
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
@@ -123,26 +123,26 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!114 &-1652334940086592304
+--- !u!114 &1830923218648355427
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4835013056700961732}
+  m_GameObject: {fileID: 5505082100278901778}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 26c02a8867ddd4f45b4dc214d4fcabcd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Template.Gameplay.Model.EnemyStatus
-  level: 3
---- !u!114 &2202200802873999495
+  level: 2
+--- !u!114 &2171265911925567978
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4835013056700961732}
+  m_GameObject: {fileID: 5505082100278901778}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 05e8b598a548f4214b16d02f968f00a6, type: 3}

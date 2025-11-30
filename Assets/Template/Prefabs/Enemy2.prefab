@@ -151,3 +151,4 @@ MonoBehaviour:
   polygonCollider: {fileID: 0}
   addColliderIfMissing: 1
   autoSyncOnStart: 1
+  makeTriggerIfUnset: 1
