@@ -171,7 +171,7 @@ namespace Template.Gameplay.Controller
 
 			// Animate background enter (from x=1800 to 0), fade in
 			if (cachedBgRect != null && cachedBgGroup != null)
-				yield return StartCoroutine(AnimateMoveAndFade(cachedBgRect, cachedBgGroup, new Vector2(1800f, 0f), new Vector2(0f, 0f), 0f, 1f, bgEnterDuration));
+				yield return StartCoroutine(AnimateMoveAndFade(cachedBgRect, cachedBgGroup, new Vector2(1800f, 0f), new Vector2(0f, 0f), 0f, 0.8f, bgEnterDuration));
 
 			yield return new WaitForSecondsRealtime(delayBeforeFishEnter);
 
@@ -202,7 +202,7 @@ namespace Template.Gameplay.Controller
 
 			// Background exit left and fade out
 			if (cachedBgRect != null && cachedBgGroup != null)
-				yield return StartCoroutine(AnimateMoveAndFade(cachedBgRect, cachedBgGroup, new Vector2(0f, 0f), new Vector2(-1800f, 0f), 1f, 0f, bgExitDuration));
+				yield return StartCoroutine(AnimateMoveAndFade(cachedBgRect, cachedBgGroup, new Vector2(0f, 0f), new Vector2(-1800f, 0f), 0.8f, 0f, bgExitDuration));
 
 			// Deactivate for reuse (avoid Destroy to prevent Editor MissingReference spam)
 			if (cachedBgRect != null) cachedBgRect.gameObject.SetActive(false);
