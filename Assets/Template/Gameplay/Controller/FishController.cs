@@ -8,7 +8,7 @@ namespace Template.Gameplay.Controller
     [RequireComponent(typeof(FishStatus))]
     public class FishController : MonoBehaviour
     {
-        [SerializeField] private FixedJoystick joystick;
+        [SerializeField] private Joystick joystick; // FixedJoystick, DynamicJoystick, FloatingJoystick のいずれにも対応
         [SerializeField] private RectTransform targetRect;
         [SerializeField] private float maxSpeed = 300f;
         [SerializeField] private float acceleration = 400f;
