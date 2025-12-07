@@ -4,6 +4,8 @@ using TMPro;
 using UnityEngine.UI;
 using DG.Tweening;
 using System.Collections;
+using Template.Gameplay.Controller;
+using Template.Gameplay.Model;
 
 namespace Template.Core
 {
@@ -33,6 +35,9 @@ namespace Template.Core
 		[SerializeField] private Material grayscaleUIMaterial;
 		[Header("Game HUD")]
 		[SerializeField] private TMP_Text gamePlayerNameText;
+		[Header("Level Progress Bar")]
+		[SerializeField] private RectTransform levelProgressFillBarMask; // Mask ObjectのRectTransform
+		[SerializeField] private TMP_Text levelProgressText;
         [Header("Game Overlay (Time Up)")]
         [SerializeField] private RectTransform overlayRoot;   // under gameRoot
         [SerializeField] private Image overlayCircleImage;    // anchored top-left
@@ -47,6 +52,8 @@ namespace Template.Core
 
         private Sequence overlaySequence;
         private Sequence resultsSequence;
+        private FishController fishController;
+        private FishStatus fishStatus;
 
         private void OnEnable()
         {
@@ -54,6 +61,11 @@ namespace Template.Core
             EventBus.OnTimeChanged += HandleTimeChanged;
             EventBus.OnScoreChanged += HandleScoreChanged;
             EventBus.OnGameTimeExpired += HandleGameTimeExpired;
+        }
+
+        private void Update()
+        {
+            UpdateLevelProgressBar();
         }
 
         private void OnDisable()
@@ -114,6 +126,8 @@ namespace Template.Core
 				{
 					gamePlayerNameText.text = RankingManager.Instance != null ? RankingManager.Instance.PlayerName : "Guest";
 				}
+                // Find FishController for level progress tracking
+                FindFishController();
             }
 			else if (state == GameState.Rankings)
 			{
@@ -406,6 +420,96 @@ namespace Template.Core
                 }
             }
             // Keep overlayRoot active until Win fully fades in
+        }
+
+        private void FindFishController()
+        {
+            if (fishController == null)
+            {
+                fishController = FindObjectOfType<FishController>();
+                if (fishController != null)
+                {
+                    fishStatus = fishController.GetComponent<FishStatus>();
+                }
+            }
+        }
+
+        private void UpdateLevelProgressBar()
+        {
+            if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameState.Game)
+            {
+                // ゲーム中でない場合は非表示または0にリセット
+                if (levelProgressFillBarMask != null)
+                {
+                    Vector2 anchorMin = levelProgressFillBarMask.anchorMin;
+                    Vector2 anchorMax = levelProgressFillBarMask.anchorMax;
+                    if (anchorMax.x > 0f)
+                    {
+                        anchorMax.x = 0f;
+                        levelProgressFillBarMask.anchorMax = anchorMax;
+                    }
+                }
+                if (levelProgressText != null)
+                {
+                    levelProgressText.text = "";
+                }
+                return;
+            }
+
+            // FishControllerが見つかっていない場合は検索
+            if (fishController == null || fishStatus == null)
+            {
+                FindFishController();
+            }
+
+            if (fishStatus != null)
+            {
+                // Fill Barの更新（anchorMax.xを進捗に合わせて更新）
+                if (levelProgressFillBarMask != null)
+                {
+                    float progress = fishStatus.GetProgress01();
+                    Vector2 anchorMin = levelProgressFillBarMask.anchorMin;
+                    Vector2 anchorMax = levelProgressFillBarMask.anchorMax;
+                    anchorMax.x = progress; // Rightを進捗の割合に設定
+                    levelProgressFillBarMask.anchorMax = anchorMax;
+                }
+
+                // 残り匹数のテキスト更新
+                if (levelProgressText != null)
+                {
+                    int remaining = fishStatus.GetRemainingFoodCount();
+                    if (remaining == -1)
+                    {
+                        levelProgressText.text = "MAX";
+                    }
+                    else if (remaining == 0)
+                    {
+                        levelProgressText.text = "0";
+                    }
+                    else
+                    {
+                        levelProgressText.text = $"{remaining}";
+                    }
+                }
+            }
+            else
+            {
+                // FishStatusが見つからない場合は0にリセット
+                if (levelProgressFillBarMask != null)
+                {
+                    Vector2 anchorMin = levelProgressFillBarMask.anchorMin;
+                    Vector2 anchorMax = levelProgressFillBarMask.anchorMax;
+                    if (anchorMax.x > 0f)
+                    {
+                        anchorMax.x = 0f;
+                        levelProgressFillBarMask.anchorMax = anchorMax;
+                    }
+                }
+                if (levelProgressText != null)
+                {
+                    levelProgressText.text = "";
+                }
+            }
         }
     }
 }

@@ -14,6 +14,46 @@ namespace Template.Gameplay.Model
         public int FoodEaten => foodEaten;
         public event System.Action<int> LevelChanged;
 
+        /// <summary>
+        /// 現在のレベルアップ進捗を0.0～1.0で返す
+        /// </summary>
+        public float GetProgress01()
+        {
+            if (level == 1)
+            {
+                return Mathf.Clamp01((float)foodEaten / foodToLevel2);
+            }
+            else if (level == 2)
+            {
+                int progress = foodEaten - foodToLevel2;
+                int required = foodToLevel3 - foodToLevel2;
+                return Mathf.Clamp01((float)progress / required);
+            }
+            else // level == 3
+            {
+                return 1f; // 最大レベル
+            }
+        }
+
+        /// <summary>
+        /// 次のレベルアップまでに必要な残りの食べ物の数を返す。最大レベルの場合は-1を返す。
+        /// </summary>
+        public int GetRemainingFoodCount()
+        {
+            if (level == 1)
+            {
+                return Mathf.Max(0, foodToLevel2 - foodEaten);
+            }
+            else if (level == 2)
+            {
+                return Mathf.Max(0, foodToLevel3 - foodEaten);
+            }
+            else // level == 3
+            {
+                return -1; // 最大レベル
+            }
+        }
+
         private void OnValidate()
         {
             level = Mathf.Clamp(level, 1, 3);

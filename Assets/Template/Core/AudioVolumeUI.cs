@@ -10,6 +10,8 @@ namespace Template.Core
 		[SerializeField] private Slider bgmSlider;
 		[SerializeField] private Slider seSlider;
 		[SerializeField] private bool initializeFromMixerOnStart = true;
+		[SerializeField] private float initialBGMVolume = 0.5f;
+		[SerializeField] private float initialSEVolume = 0.5f;
 
 		private void OnEnable()
 		{
@@ -25,18 +27,41 @@ namespace Template.Core
 
 		private void Start()
 		{
-			if (!initializeFromMixerOnStart) return;
 			var audio = AudioManager.Instance;
 			if (audio == null) return;
+
 			if (bgmSlider != null)
 			{
-				float v = audio.GetBGMVolume01();
+				float v;
+				if (initializeFromMixerOnStart)
+				{
+					v = audio.GetBGMVolume01();
+					// If mixer value is 0 or invalid, use initial value
+					if (v <= 0f) v = Mathf.Clamp01(initialBGMVolume);
+				}
+				else
+				{
+					v = Mathf.Clamp01(initialBGMVolume);
+				}
 				bgmSlider.SetValueWithoutNotify(v);
+				audio.SetBGMVolume01(v);
 			}
+
 			if (seSlider != null)
 			{
-				float v = audio.GetSEVolume01();
+				float v;
+				if (initializeFromMixerOnStart)
+				{
+					v = audio.GetSEVolume01();
+					// If mixer value is 0 or invalid, use initial value
+					if (v <= 0f) v = Mathf.Clamp01(initialSEVolume);
+				}
+				else
+				{
+					v = Mathf.Clamp01(initialSEVolume);
+				}
 				seSlider.SetValueWithoutNotify(v);
+				audio.SetSEVolume01(v);
 			}
 		}
 
