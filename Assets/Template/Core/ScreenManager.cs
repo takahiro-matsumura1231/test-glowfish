@@ -38,6 +38,11 @@ namespace Template.Core
 		[Header("Level Progress Bar")]
 		[SerializeField] private RectTransform levelProgressFillBarMask; // Mask ObjectのRectTransform
 		[SerializeField] private TMP_Text levelProgressText;
+        [Header("Countdown")]
+        [SerializeField] private TMP_Text countdownText;     // カウントダウン表示用
+        [SerializeField] private float countdownStartScale = 1.5f;  // 開始時のスケール
+        [SerializeField] private float countdownEndScale = 0.8f;    // 終了時のスケール
+        [SerializeField] private float countdownDuration = 1f;     // 各数字の表示時間
         [Header("Game Overlay (Time Up)")]
         [SerializeField] private RectTransform overlayRoot;   // under gameRoot
         [SerializeField] private Image overlayCircleImage;    // anchored top-left
@@ -52,8 +57,11 @@ namespace Template.Core
 
         private Sequence overlaySequence;
         private Sequence resultsSequence;
+        private Sequence countdownSequence;
         private FishController fishController;
         private FishStatus fishStatus;
+        private int lastCountdownNumber = -1; // 最後に表示したカウントダウン数字
+        private bool countdownSEStarted = false; // カウントダウンSEが開始されたか
 
         private void OnEnable()
         {
@@ -76,6 +84,7 @@ namespace Template.Core
             EventBus.OnGameTimeExpired -= HandleGameTimeExpired;
             if (overlaySequence != null && overlaySequence.IsActive()) overlaySequence.Kill(true);
             if (resultsSequence != null && resultsSequence.IsActive()) resultsSequence.Kill(true);
+            if (countdownSequence != null && countdownSequence.IsActive()) countdownSequence.Kill(true);
         }
 
         private void Start()
@@ -103,6 +112,13 @@ namespace Template.Core
 			SetActiveSafe(nameEntryRoot, state == GameState.NameEntry);
             // settingsPopup is independent; do not change here
 
+            // ゲーム以外の状態になったらカウントダウンSEを停止
+            if (state != GameState.Game && countdownSEStarted)
+            {
+                AudioManager.Instance?.StopCountdownSE();
+                countdownSEStarted = false;
+            }
+
             UpdateComponents(state);
             // Ensure win screen shows latest score
             if (state == GameState.Win)
@@ -128,6 +144,13 @@ namespace Template.Core
 				}
                 // Find FishController for level progress tracking
                 FindFishController();
+                // Reset countdown
+                if (countdownText != null)
+                {
+                    countdownText.gameObject.SetActive(false);
+                }
+                lastCountdownNumber = -1;
+                countdownSEStarted = false;
             }
 			else if (state == GameState.Rankings)
 			{
@@ -242,6 +265,60 @@ namespace Template.Core
             int minutes = total / 60;
             int seconds = total % 60;
             timerText.text = $"{minutes:00}:{seconds:00}";
+
+            // カウントダウン演出（残り5秒以下）
+            if (remainingSeconds <= 5f && remainingSeconds > 0f)
+            {
+                // カウントダウンSEを開始（初回のみ）
+                if (!countdownSEStarted)
+                {
+                    AudioManager.Instance?.StartCountdownSE();
+                    countdownSEStarted = true;
+                }
+
+                int countdownNumber = Mathf.CeilToInt(remainingSeconds);
+                if (countdownNumber != lastCountdownNumber && countdownNumber <= 5)
+                {
+                    ShowCountdown(countdownNumber);
+                    lastCountdownNumber = countdownNumber;
+                }
+            }
+            else if (remainingSeconds <= 0f && lastCountdownNumber != 0)
+            {
+                // カウントダウンSEを停止して終了SEを鳴らす
+                if (countdownSEStarted)
+                {
+                    AudioManager.Instance?.StopCountdownSE();
+                    countdownSEStarted = false;
+                    AudioManager.Instance?.PlayCountdownEndSE();
+                }
+                // 0を表示
+                ShowCountdown(0);
+                lastCountdownNumber = 0;
+                // カウント0になったら衝突判定を無効化してユーザーを保護
+                if (fishController == null)
+                {
+                    FindFishController();
+                }
+                if (fishController != null)
+                {
+                    fishController.DisableCollision();
+                }
+            }
+            else if (remainingSeconds > 5f)
+            {
+                // カウントダウン範囲外の場合はリセット
+                if (countdownText != null && countdownText.gameObject.activeSelf)
+                {
+                    countdownText.gameObject.SetActive(false);
+                }
+                if (countdownSEStarted)
+                {
+                    AudioManager.Instance?.StopCountdownSE();
+                    countdownSEStarted = false;
+                }
+                lastCountdownNumber = -1;
+            }
         }
 
         private void HandleScoreChanged(int score)
@@ -509,6 +586,53 @@ namespace Template.Core
                 {
                     levelProgressText.text = "";
                 }
+            }
+        }
+
+        private void ShowCountdown(int number)
+        {
+            if (countdownText == null) return;
+
+            // 既存のアニメーションを停止
+            if (countdownSequence != null && countdownSequence.IsActive())
+            {
+                countdownSequence.Kill(true);
+            }
+
+            // テキストを設定
+            countdownText.text = number.ToString();
+            countdownText.gameObject.SetActive(true);
+
+            // RectTransformを取得
+            RectTransform rt = countdownText.rectTransform;
+            if (rt == null) return;
+
+            // 初期状態：大きいスケール
+            rt.localScale = Vector3.one * countdownStartScale;
+            CanvasGroup cg = countdownText.GetComponent<CanvasGroup>();
+            if (cg == null)
+            {
+                cg = countdownText.gameObject.AddComponent<CanvasGroup>();
+            }
+            cg.alpha = 1f;
+
+            // アニメーションシーケンス
+            countdownSequence = DOTween.Sequence();
+            
+            // 大きい状態から少しずつ小さくなる
+            countdownSequence.Append(rt.DOScale(Vector3.one * countdownEndScale, countdownDuration).SetEase(Ease.OutQuad));
+
+            // アニメーション完了後、非表示にする（最後の0以外）
+            if (number > 0)
+            {
+                countdownSequence.AppendInterval(0.1f);
+                countdownSequence.AppendCallback(() =>
+                {
+                    if (countdownText != null)
+                    {
+                        countdownText.gameObject.SetActive(false);
+                    }
+                });
             }
         }
     }

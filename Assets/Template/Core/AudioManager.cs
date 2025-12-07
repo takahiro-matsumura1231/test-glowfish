@@ -8,6 +8,7 @@ namespace Template.Core
         [Header("Audio Sources")]
         [SerializeField] private AudioSource bgmSource;
         [SerializeField] private AudioSource seSource;
+        [SerializeField] private AudioSource countdownSource; // カウントダウン用の専用AudioSource
 
         [Header("Audio Mixer Routing")]
         [SerializeField] private AudioMixer audioMixer;
@@ -28,6 +29,8 @@ namespace Template.Core
 		[SerializeField] private AudioClip levelUpSEClip;
 		[SerializeField] private AudioClip winSEClip;
 		[SerializeField] private AudioClip loseSEClip;
+		[SerializeField] private AudioClip countdownSEClip;
+		[SerializeField] private AudioClip countdownEndSEClip;
 
         protected override void SingletonAwakened()
         {
@@ -43,9 +46,16 @@ namespace Template.Core
                 seSource.playOnAwake = false;
                 seSource.loop = false;
             }
+            if (countdownSource == null)
+            {
+                countdownSource = gameObject.AddComponent<AudioSource>();
+                countdownSource.playOnAwake = false;
+                countdownSource.loop = true; // カウントダウンSEはループ再生
+            }
 
             if (bgmGroup != null) bgmSource.outputAudioMixerGroup = bgmGroup;
             if (seGroup != null) seSource.outputAudioMixerGroup = seGroup;
+            if (seGroup != null && countdownSource != null) countdownSource.outputAudioMixerGroup = seGroup;
         }
 
         public void PlayBGM(AudioClip clip, bool loop = true, float volume = 1f)
@@ -102,6 +112,39 @@ namespace Template.Core
 		public void PlayLoseSE()
 		{
 			PlaySE(loseSEClip, defaultSEVolume);
+		}
+
+		/// <summary>
+		/// カウントダウンSEをループ再生開始
+		/// </summary>
+		public void StartCountdownSE()
+		{
+			if (countdownSource == null || countdownSEClip == null) return;
+			if (countdownSource.isPlaying) return; // 既に再生中の場合は何もしない
+			countdownSource.clip = countdownSEClip;
+			countdownSource.volume = defaultSEVolume;
+			countdownSource.loop = true;
+			countdownSource.Play();
+		}
+
+		/// <summary>
+		/// カウントダウンSEを停止
+		/// </summary>
+		public void StopCountdownSE()
+		{
+			if (countdownSource == null) return;
+			if (countdownSource.isPlaying)
+			{
+				countdownSource.Stop();
+			}
+		}
+
+		/// <summary>
+		/// カウントダウン終了SEを再生
+		/// </summary>
+		public void PlayCountdownEndSE()
+		{
+			PlaySE(countdownEndSEClip, defaultSEVolume);
 		}
 
         // UI Slider bindings (0..1). Hook these from Slider OnValueChanged(float)

@@ -34,6 +34,7 @@ namespace Template.Gameplay.Controller
 		private Vector3 baseScaleMagnitude;
         private Vector2 initialAnchoredPosition;
         private bool movementLocked = false;
+        private bool collisionDisabled = false; // カウント0になったら衝突判定を無効化
 
         public void Initialize() {}
 
@@ -49,6 +50,7 @@ namespace Template.Gameplay.Controller
                 joystick.OnPointerUp(null);
             }
             movementLocked = true;
+            collisionDisabled = false; // リセット時に衝突判定を有効化
             if (targetRect == null)
             {
                 targetRect = GetComponent<RectTransform>();
@@ -177,6 +179,14 @@ namespace Template.Gameplay.Controller
             return (sprite != null);
         }
 
+        /// <summary>
+        /// 衝突判定を無効化（カウント0になった時に呼び出す）
+        /// </summary>
+        public void DisableCollision()
+        {
+            collisionDisabled = true;
+        }
+
         private void Update()
         {
             if (joystick == null) return;
@@ -246,6 +256,11 @@ namespace Template.Gameplay.Controller
             if (gm != null && gm.IsClearing)
             {
                 // Ignore collisions during clear sequence
+                return;
+            }
+            // カウント0になったら衝突判定を無効化
+            if (collisionDisabled)
+            {
                 return;
             }
             if (fishStatus == null) return;
