@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using Template.Gameplay.Model;
 
 namespace Template.Gameplay.Controller
@@ -13,9 +14,28 @@ namespace Template.Gameplay.Controller
         [SerializeField] private float despawnMarginPixels = 20f;
         [SerializeField] private bool flipHorizontally = true;
 
+        [Header("Edible Visuals")]
+        [SerializeField] private bool showEdibleOutline = true;
+        [SerializeField] private Color edibleOutlineColor = new Color(0.2f, 1.0f, 0.2f, 1.0f);
+        [SerializeField, Min(0f)] private float edibleOutlineSize = 6f;
+        [SerializeField] private bool outlineUseGraphicAlpha = true;
+        [SerializeField] private bool animateEdibleOutline = true;
+        [SerializeField, Min(0.01f)] private float edibleOutlinePulseSpeed = 2.2f;
+        [SerializeField, Range(0f, 1f)] private float pulseAlphaMultiplierMin = 0.35f;
+        [SerializeField, Range(0f, 1f)] private float pulseAlphaMultiplierMax = 1.0f;
+        [SerializeField, Min(0f)] private float pulseSizeMultiplierMin = 0.75f;
+        [SerializeField, Min(0f)] private float pulseSizeMultiplierMax = 1.35f;
+
         private RectTransform parentRect;
         private Vector2 moveDir = Vector2.left;
         private Vector3 originalScale;
+
+        private EnemyStatus enemyStatus;
+        private Outline edibleOutline;
+        private FishStatus subscribedFishStatus;
+        private bool started;
+        private static FishStatus cachedPlayerFishStatus;
+        private bool edibleNow;
 
         public void Initialize() {}
 
@@ -28,7 +48,30 @@ namespace Template.Gameplay.Controller
                 parentRect = targetRect.parent as RectTransform;
                 originalScale = targetRect.localScale;
             }
+
+            enemyStatus = GetComponent<EnemyStatus>();
+            EnsureEdibleOutline();
             ApplyDirection(direction);
+        }
+
+        private void Start()
+        {
+            started = true;
+            TrySubscribeToPlayerLevel();
+            // Initial refresh should happen in Start, because EnemySpawner may override EnemyStatus level after Instantiate().
+            RefreshEdibleOutline();
+        }
+
+        private void OnEnable()
+        {
+            TrySubscribeToPlayerLevel();
+            // If re-enabled later (not just after Instantiate), ensure visuals are correct.
+            if (started) RefreshEdibleOutline();
+        }
+
+        private void OnDisable()
+        {
+            UnsubscribeFromPlayerLevel();
         }
 
         private void Update()
@@ -39,6 +82,8 @@ namespace Template.Gameplay.Controller
             Vector2 delta = moveDir * speed * dt;
             Vector2 newPos = targetRect.anchoredPosition + delta;
             targetRect.anchoredPosition = newPos;
+
+            ApplyEdibleOutlinePulseIfNeeded();
 
             if (parentRect != null)
             {
@@ -76,6 +121,123 @@ namespace Template.Gameplay.Controller
                 scale.x = Mathf.Abs(originalScale.x) * sign;
                 targetRect.localScale = scale;
             }
+        }
+
+        private void EnsureEdibleOutline()
+        {
+            if (!showEdibleOutline) return;
+            if (edibleOutline == null || edibleOutline.Equals(null))
+            {
+                edibleOutline = GetComponent<Outline>();
+                if (edibleOutline == null || edibleOutline.Equals(null))
+                {
+                    // Outline requires a Graphic (Image) on the same GameObject. Enemy prefabs are UGUI Images, so this is safe.
+                    edibleOutline = gameObject.AddComponent<Outline>();
+                }
+            }
+
+            edibleOutline.effectColor = edibleOutlineColor;
+            edibleOutline.effectDistance = new Vector2(edibleOutlineSize, edibleOutlineSize);
+            edibleOutline.useGraphicAlpha = outlineUseGraphicAlpha;
+            edibleOutline.enabled = false;
+            edibleNow = false;
+        }
+
+        private static FishStatus GetPlayerFishStatus()
+        {
+            if (cachedPlayerFishStatus != null && !cachedPlayerFishStatus.Equals(null))
+            {
+                return cachedPlayerFishStatus;
+            }
+            cachedPlayerFishStatus = FindObjectOfType<FishStatus>();
+            return cachedPlayerFishStatus;
+        }
+
+        private void TrySubscribeToPlayerLevel()
+        {
+            FishStatus fish = GetPlayerFishStatus();
+            if (fish == null || fish.Equals(null)) return;
+            if (ReferenceEquals(subscribedFishStatus, fish)) return;
+
+            UnsubscribeFromPlayerLevel();
+            subscribedFishStatus = fish;
+            subscribedFishStatus.LevelChanged += HandlePlayerLevelChanged;
+        }
+
+        private void UnsubscribeFromPlayerLevel()
+        {
+            if (subscribedFishStatus == null || subscribedFishStatus.Equals(null)) return;
+            subscribedFishStatus.LevelChanged -= HandlePlayerLevelChanged;
+            subscribedFishStatus = null;
+        }
+
+        private void HandlePlayerLevelChanged(int _newLevel)
+        {
+            RefreshEdibleOutline();
+        }
+
+        private void RefreshEdibleOutline()
+        {
+            if (edibleOutline == null || edibleOutline.Equals(null))
+            {
+                EnsureEdibleOutline();
+            }
+            if (!showEdibleOutline || edibleOutline == null || edibleOutline.Equals(null))
+            {
+                return;
+            }
+
+            if (enemyStatus == null || enemyStatus.Equals(null))
+            {
+                enemyStatus = GetComponent<EnemyStatus>();
+                if (enemyStatus == null || enemyStatus.Equals(null))
+                {
+                    edibleOutline.enabled = false;
+                    edibleNow = false;
+                    return;
+                }
+            }
+
+            FishStatus fish = GetPlayerFishStatus();
+            if (fish == null || fish.Equals(null))
+            {
+                edibleOutline.enabled = false;
+                edibleNow = false;
+                return;
+            }
+
+            bool edible = fish.Level >= enemyStatus.Level;
+            edibleOutline.enabled = edible;
+            edibleNow = edible;
+
+            if (!edible)
+            {
+                // Reset to base appearance when not edible (and when disabling pulse).
+                edibleOutline.effectColor = edibleOutlineColor;
+                edibleOutline.effectDistance = new Vector2(edibleOutlineSize, edibleOutlineSize);
+            }
+        }
+
+        private void ApplyEdibleOutlinePulseIfNeeded()
+        {
+            if (!animateEdibleOutline) return;
+            if (!edibleNow) return;
+            if (!showEdibleOutline) return;
+            if (edibleOutline == null || edibleOutline.Equals(null)) return;
+            if (!edibleOutline.enabled) return;
+
+            // 0..1 smooth pulse
+            float t01 = (Mathf.Sin(Time.time * edibleOutlinePulseSpeed) + 1f) * 0.5f;
+
+            float alphaMul = Mathf.Lerp(pulseAlphaMultiplierMin, pulseAlphaMultiplierMax, t01);
+            float sizeMul = Mathf.Lerp(pulseSizeMultiplierMin, pulseSizeMultiplierMax, t01);
+
+            Color c = edibleOutlineColor;
+            c.a *= alphaMul;
+            edibleOutline.effectColor = c;
+
+            float size = edibleOutlineSize * sizeMul;
+            edibleOutline.effectDistance = new Vector2(size, size);
         }
 
         private void OnTriggerEnter2D(Collider2D other)

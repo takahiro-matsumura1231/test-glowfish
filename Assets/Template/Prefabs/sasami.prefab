@@ -96,6 +96,16 @@ MonoBehaviour:
   direction: 1
   despawnMarginPixels: 20
   flipHorizontally: 1
+  showEdibleOutline: 1
+  edibleOutlineColor: {r: 0.19999999, g: 1, b: 0.3393295, a: 0.4117647}
+  edibleOutlineSize: 10
+  outlineUseGraphicAlpha: 1
+  animateEdibleOutline: 1
+  edibleOutlinePulseSpeed: 2.2
+  pulseAlphaMultiplierMin: 0.35
+  pulseAlphaMultiplierMax: 1
+  pulseSizeMultiplierMin: 0.75
+  pulseSizeMultiplierMax: 1.35
 --- !u!50 &4731740652240988469
 Rigidbody2D:
   serializedVersion: 5

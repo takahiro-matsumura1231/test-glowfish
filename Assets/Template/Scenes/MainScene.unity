@@ -449,7 +449,7 @@ MonoBehaviour:
   pointsLevel1: 5
   pointsLevel2: 20
   pointsLevel3: 50
-  gameDurationSeconds: 10
+  gameDurationSeconds: 90
 --- !u!4 &34906962
 Transform:
   m_ObjectHideFlags: 0
