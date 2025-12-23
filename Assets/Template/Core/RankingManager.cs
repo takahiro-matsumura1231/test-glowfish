@@ -20,6 +20,9 @@ namespace Template.Core
 
 	public class RankingManager : MonoBehaviourSingleton<RankingManager>
 	{
+		// Player name max length requirement (UI input + ranking data)
+		public const int PlayerNameMaxLength = 10;
+
 		[SerializeField] private string playerName = "Guest";
 		[SerializeField] private int maxEntriesToKeep = 100;
 		[SerializeField] private string prefsKey = "RANKING_DATA";
@@ -30,7 +33,24 @@ namespace Template.Core
 		public string PlayerName
 		{
 			get => playerName;
-			set => playerName = string.IsNullOrEmpty(value) ? "Guest" : value;
+			set => playerName = SanitizePlayerName(value);
+		}
+
+		public static string SanitizePlayerName(string raw)
+		{
+			if (string.IsNullOrWhiteSpace(raw)) return "Guest";
+
+			// Single-line, trim, and remove control characters/newlines to prevent UI overflow issues.
+			string s = raw.Trim();
+			s = s.Replace("\r", string.Empty).Replace("\n", string.Empty).Replace("\t", " ");
+
+			// Collapse double spaces a little (cheap)
+			while (s.Contains("  ")) s = s.Replace("  ", " ");
+
+			// Clamp length (UTF-16 code units; good enough for TMP display constraints)
+			if (s.Length > PlayerNameMaxLength) s = s.Substring(0, PlayerNameMaxLength);
+
+			return string.IsNullOrWhiteSpace(s) ? "Guest" : s;
 		}
 
 		protected override void SingletonAwakened()
@@ -46,8 +66,7 @@ namespace Template.Core
 		public void AddScore(int score, string name)
 		{
 			if (score < 0) score = 0;
-			if (string.IsNullOrEmpty(name)) name = "Guest";
-			name = name.Trim();
+			name = SanitizePlayerName(name);
 			var data = Load();
 			if (data == null) data = new ScoreData();
 			// Keep only one entry per name: update if higher, otherwise keep existing

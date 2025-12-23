@@ -11,6 +11,14 @@ namespace Template.Core
 {
     public class ScreenManager : MonoBehaviourSingleton<ScreenManager>
     {
+		[Header("Player Name")]
+		[SerializeField, Min(1)] private int playerNameMaxLength = RankingManager.PlayerNameMaxLength;
+		[SerializeField] private TMP_Text playerNameErrorText;
+		[SerializeField, Min(0f)] private float playerNameErrorShowSeconds = 2f;
+		[SerializeField] private string playerNameTooLongMessage = "Please enter a name under {0} words";
+
+		private Coroutine playerNameErrorRoutine;
+
         [Header("Screens")]
         [SerializeField] private GameObject menuRoot;
         [SerializeField] private GameObject gameRoot;
@@ -100,7 +108,171 @@ namespace Template.Core
                     ApplyWinFishImage(manager);
                 }
             }
+
+			ConfigurePlayerNameUI();
         }
+
+		private void ConfigurePlayerNameUI()
+		{
+			if (playerNameMaxLength <= 0) playerNameMaxLength = RankingManager.PlayerNameMaxLength;
+
+			// Input field
+			if (playerNameInput != null)
+			{
+				playerNameInput.characterLimit = playerNameMaxLength;
+				playerNameInput.onValidateInput = ValidatePlayerNameChar;
+				playerNameInput.onValueChanged.RemoveListener(HandlePlayerNameInputChanged);
+				playerNameInput.onValueChanged.AddListener(HandlePlayerNameInputChanged);
+
+				// Ensure TMP text never draws outside its viewport
+				if (playerNameInput.textComponent != null)
+				{
+					playerNameInput.textComponent.enableAutoSizing = true;
+					playerNameInput.textComponent.enableWordWrapping = false;
+					playerNameInput.textComponent.overflowMode = TextOverflowModes.Ellipsis;
+					playerNameInput.textComponent.richText = false;
+				}
+				if (playerNameInput.placeholder is TMP_Text placeholderText)
+				{
+					placeholderText.enableAutoSizing = true;
+					placeholderText.enableWordWrapping = false;
+					placeholderText.overflowMode = TextOverflowModes.Ellipsis;
+					placeholderText.richText = false;
+				}
+
+				EnsurePlayerNameErrorText();
+				SetPlayerNameErrorVisible(false);
+			}
+
+			// HUD player name
+			if (gamePlayerNameText != null)
+			{
+				gamePlayerNameText.enableAutoSizing = true;
+				gamePlayerNameText.enableWordWrapping = false;
+				gamePlayerNameText.overflowMode = TextOverflowModes.Ellipsis;
+				gamePlayerNameText.richText = false;
+			}
+		}
+
+		private void HandlePlayerNameInputChanged(string raw)
+		{
+			// Clamp + normalize immediately so the TMP_InputField never renders overflowing text.
+			string sanitized = RankingManager.SanitizePlayerName(raw);
+			if (playerNameInput != null && playerNameInput.text != sanitized)
+			{
+				playerNameInput.SetTextWithoutNotify(sanitized);
+			}
+
+			// Clear error once input is valid again
+			if (sanitized.Length <= playerNameMaxLength)
+			{
+				SetPlayerNameErrorVisible(false);
+			}
+		}
+
+		private char ValidatePlayerNameChar(string currentText, int charIndex, char addedChar)
+		{
+			// Block newlines explicitly (single-line name)
+			if (addedChar == '\n' || addedChar == '\r')
+			{
+				return '\0';
+			}
+
+			// If there's a selection, it will be replaced; account for that.
+			int selectionStart = 0;
+			int selectionEnd = 0;
+			int selectionLength = 0;
+			if (playerNameInput != null)
+			{
+				// TMP_InputField API differs by version; use selection string positions (character indices).
+				selectionStart = Mathf.Min(playerNameInput.selectionStringAnchorPosition, playerNameInput.selectionStringFocusPosition);
+				selectionEnd = Mathf.Max(playerNameInput.selectionStringAnchorPosition, playerNameInput.selectionStringFocusPosition);
+				selectionLength = Mathf.Max(0, selectionEnd - selectionStart);
+			}
+
+			int currentLen = currentText?.Length ?? 0;
+			int nextLen = currentLen - selectionLength + 1;
+			if (nextLen > playerNameMaxLength)
+			{
+				ShowPlayerNameTooLongError();
+				return '\0'; // reject input
+			}
+
+			return addedChar;
+		}
+
+		private void ShowPlayerNameTooLongError()
+		{
+			EnsurePlayerNameErrorText();
+			if (playerNameErrorText == null) return;
+
+			playerNameErrorText.text = string.Format(playerNameTooLongMessage, playerNameMaxLength);
+			SetPlayerNameErrorVisible(true);
+
+			if (playerNameErrorRoutine != null) StopCoroutine(playerNameErrorRoutine);
+			if (playerNameErrorShowSeconds > 0f)
+			{
+				playerNameErrorRoutine = StartCoroutine(HidePlayerNameErrorAfterDelay(playerNameErrorShowSeconds));
+			}
+		}
+
+		private IEnumerator HidePlayerNameErrorAfterDelay(float seconds)
+		{
+			yield return new WaitForSeconds(seconds);
+			SetPlayerNameErrorVisible(false);
+			playerNameErrorRoutine = null;
+		}
+
+		private void SetPlayerNameErrorVisible(bool visible)
+		{
+			if (playerNameErrorText == null) return;
+			if (playerNameErrorText.gameObject.activeSelf != visible)
+			{
+				playerNameErrorText.gameObject.SetActive(visible);
+			}
+		}
+
+		private void EnsurePlayerNameErrorText()
+		{
+			if (playerNameErrorText != null) return;
+			if (playerNameInput == null) return;
+
+			// Create a simple error label under the input field so scenes don't need manual wiring.
+			var parent = playerNameInput.transform.parent as RectTransform;
+			if (parent == null) parent = playerNameInput.transform as RectTransform;
+			if (parent == null) return;
+
+			var go = new GameObject("PlayerNameError", typeof(RectTransform));
+			go.transform.SetParent(parent, false);
+
+			var rt = go.GetComponent<RectTransform>();
+			rt.anchorMin = new Vector2(0f, 1f);
+			rt.anchorMax = new Vector2(1f, 1f);
+			rt.pivot = new Vector2(0.5f, 1f);
+			rt.anchoredPosition = new Vector2(0f, -10f);
+			rt.sizeDelta = new Vector2(0f, 40f);
+
+			var tmp = go.AddComponent<TextMeshProUGUI>();
+			tmp.text = string.Empty;
+			tmp.enableAutoSizing = true;
+			tmp.fontSizeMin = 18;
+			tmp.fontSizeMax = 32;
+			tmp.alignment = TextAlignmentOptions.Center;
+			tmp.enableWordWrapping = false;
+			tmp.overflowMode = TextOverflowModes.Ellipsis;
+			tmp.richText = false;
+
+			// Reuse font from the input field if possible
+			if (playerNameInput.textComponent != null)
+			{
+				tmp.font = playerNameInput.textComponent.font;
+				tmp.fontStyle = FontStyles.Normal;
+			}
+			tmp.color = new Color(1f, 0.3f, 0.3f, 1f);
+
+			playerNameErrorText = tmp;
+			playerNameErrorText.gameObject.SetActive(false);
+		}
 
         private void HandleStateChanged(GameState state)
         {
@@ -140,7 +312,8 @@ namespace Template.Core
 				// Show player name on HUD
 				if (gamePlayerNameText != null)
 				{
-					gamePlayerNameText.text = RankingManager.Instance != null ? RankingManager.Instance.PlayerName : "Guest";
+					string displayName = RankingManager.Instance != null ? RankingManager.Instance.PlayerName : "Guest";
+					gamePlayerNameText.text = RankingManager.SanitizePlayerName(displayName);
 				}
                 // Find FishController for level progress tracking
                 FindFishController();
@@ -172,8 +345,8 @@ namespace Template.Core
 		public void ConfirmPlayerNameAndStart()
 		{
 			string name = (playerNameInput != null) ? playerNameInput.text : null;
-			if (string.IsNullOrWhiteSpace(name)) name = "Guest";
-			RankingManager.Instance.PlayerName = name.Trim();
+			name = RankingManager.SanitizePlayerName(name);
+			if (RankingManager.Instance != null) RankingManager.Instance.PlayerName = name;
 			GameManager.Instance?.StartGame();
 		}
         

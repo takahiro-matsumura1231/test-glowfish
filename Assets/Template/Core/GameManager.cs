@@ -30,6 +30,7 @@ namespace Template.Core
 
         public void StartGame()
         {
+            ResumeGame();
             GameplayInitializer.Instance.InitializeForGameStart();
             ResetScore();
             IsClearing = false;
